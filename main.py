@@ -3,12 +3,15 @@ import requests
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.express as px
-import seaborn as sns
 from util import obter_token
 
 st.set_page_config(layout="wide")
 
-st.title("Dashboard - Projeto Envelhecer")
+_, image_col, _ = st.columns([2,1,2])
+
+with image_col:
+    st.image("Envelhecer_nos_territrios.png", width=200)
+st.title("Dashboard - Projeto Envelhecer Nos Territórios")
 
 odk_token = obter_token()
 
@@ -18,7 +21,6 @@ if odk_token:
     response = requests.get(url_dados, headers=headers)
     data = response.json()
 
-    # --- Tratamento dos dados ---
     df = pd.json_normalize(data['value'])
 
     nomes_map = {
@@ -36,79 +38,66 @@ if odk_token:
     df["__system.submitterName"] = df["__system.submitterName"].replace(nomes_map)
     df["timestamp"] = pd.to_datetime(df["__system.submissionDate"])
     df["data"] = df['timestamp'].dt.date
-    df["hora"] = df['timestamp'].dt.strftime('%H:%M')
+    df["Municipio"] = df["__system.submitterName"].apply(lambda n: n.replace(")", "").split("(")[-1])
 
     df['moradia_acesso_transporte.acesso_internet'] = df['moradia_acesso_transporte.acesso_internet'].replace(sim_nao_map)
     df['condicao_geral_saude.pcd'] = df['condicao_geral_saude.pcd'].replace(sim_nao_map)
     df['condicao_geral_saude.agente_saude_visita'] = df['condicao_geral_saude.agente_saude_visita'].replace(sim_nao_map)
 
-    df["Municipio"] = df["__system.submitterName"].apply(lambda n: n.replace(")", "").split("(")[-1])
-
-    # --- Interface de filtro ---
-    st.sidebar.header("Filtros")
-    municipios = df["Municipio"].dropna().unique().tolist()
-    municipio_sel = st.sidebar.selectbox("Selecione o Município", municipios)
-
+    # --- Filtro de pergunta ---
+    st.sidebar.header("Selecione uma...")
     pergunta = st.sidebar.selectbox("Pergunta", [
         ("moradia_acesso_transporte.acesso_internet", "Possui acesso à Internet?"),
         ("moradia_acesso_transporte.horas_internet", "Quantas horas de Internet por dia?"),
         ("condicao_geral_saude.pcd", "Você se considera uma Pessoa com Deficiência (PcD)?"),
         ("condicao_geral_saude.agente_saude_visita", "Algum agente de saúde te visita?"),
         ("condicao_geral_saude.frequencia_visita", "Qual a frequência de visitas do ACS?")
+        
     ], format_func=lambda x: x[1])
 
     coluna, titulo = pergunta
 
-    # --- Gráfico de barras vertical com total de respostas por munucipio ignorando as perguntas e destacar o valor de cada barra --- 
-    df_municipio = df.groupby("Municipio").size().reset_index(name='Total_Respostas')
-    fig_municipio = px.bar(df_municipio, x="Municipio", y="Total_Respostas", 
-                            title=f"Total de Respostas: {len(df)}", 
-                            labels={"Total_Respostas": "Total de Respostas"})
-    fig_municipio.update_traces(texttemplate='%{y}', textfont_size=25)
-    fig_municipio.update_layout(yaxis_title="Total de Respostas", xaxis_title="Município")
-    st.plotly_chart(fig_municipio, use_container_width=True)
-    # --- Gráfico de barras horizontal com total de respostas por munucipio e pergunta ---
+    st.header(f"Total Geral de Respostas: {len(df)}")
 
-   
+    # --- Layout principal ---
+    col1, col2 = st.columns(2)
 
+    # 1. Gráfico: Total de Respostas por Município
+    with col1:
+        st.subheader("1. Total de Respostas por Município")
+        df_municipio = df.groupby("Municipio").size().reset_index(name='Total_Respostas')
+        fig_total = px.bar(df_municipio, x="Municipio", y="Total_Respostas", text_auto=True)
+        fig_total.update_layout(yaxis_title="Total de Respostas", xaxis_title="Município")
+        st.plotly_chart(fig_total, use_container_width=True)
 
+    # 2. Gráfico: Evolução das Respostas ao Longo do Tempo
+    with col2:
+        st.subheader("2. Evolução das Respostas ao Longo do Tempo")
+        df_grouped = df.groupby(["Municipio", "data"]).size().reset_index(name="Total_Respostas")
+        fig_evolucao = px.line(df_grouped, x="data", y="Total_Respostas", color="Municipio", markers=True)
+        fig_evolucao.update_layout(xaxis_title="Data", yaxis_title="Número de Respostas")
+        st.plotly_chart(fig_evolucao, use_container_width=True)
 
-    # --- Gráfico de pizza por município ---
-    st.subheader(f"{municipio_sel}: {titulo}")
-    df_m = df[df["Municipio"] == municipio_sel]
-    dados = df_m[coluna].value_counts()
+    # 3. Gráfico: Distribuição por Município da Pergunta Selecionada
+    st.header(f"Visualização: {titulo}")
+    st.subheader("3. Distribuição das Respostas por Município")
+    df_bar = df.groupby(["Municipio", coluna]).size().reset_index(name="count")
+    df_bar["percentual"] = df_bar.groupby("Municipio")["count"].transform(lambda x: x / x.sum()) * 100
 
-    fig, ax = plt.subplots()
-    ax.pie(dados, labels=dados.index, autopct='%1.1f%%', startangle=90)
-    ax.axis('equal')
-    st.pyplot(fig)
+    # Cores personalizadas para Sim/Não/NSNR
+    cores_personalizadas = {
+        "Sim": "green",
+        "Não": "red",
+        "NS/NR": "gray"
+    }
 
-    # --- Gráfico de pizza total ---
-    st.subheader(f"Todos os municípios: {titulo}")
-    dados_total = df[coluna].value_counts()
-    fig2, ax2 = plt.subplots()
-    ax2.pie(dados_total, labels=dados_total.index, autopct='%1.1f%%', startangle=90)
-    ax2.axis('equal')
-    st.pyplot(fig2)
-
-    # --- Gráfico interativo de evolução por município ---
-    st.subheader("Evolução das respostas por Município")
-    df_grouped = df.groupby(["Municipio", "data"])['respondente'].count().reset_index()
-    df_grouped = df_grouped.rename(columns={"respondente": "Total_Respostas"})
-
-    fig_line = px.line(df_grouped, x="data", y="Total_Respostas", color="Municipio", markers=True)
-    fig_line.update_layout(title="Respostas ao longo do tempo", xaxis_title="Data", yaxis_title="Número de Respostas")
-    st.plotly_chart(fig_line, use_container_width=True)
-
-    # --- Gráfico de barras para comparação entre municípios ---
-    st.subheader("Distribuição de respostas por Município")
-    df_bar = df.groupby("Municipio")[coluna].value_counts(normalize=True).rename("Proporcao").reset_index()
-    fig_bar = px.bar(df_bar, x="Municipio", y="Proporcao", color=coluna, barmode="stack", 
-                     labels={"Proporcao": "Proporção"}, 
-                     title=f"Distribuição por Município - {titulo}")
+    fig_bar = px.bar(
+        df_bar, x="Municipio", y="percentual", color=coluna,
+        color_discrete_map=cores_personalizadas,
+        barmode="stack",
+        labels={"percentual": "Proporção"}
+    )
     st.plotly_chart(fig_bar, use_container_width=True)
-
-
 
 else:
     st.error("Erro ao obter o token de autenticação. Verifique suas credenciais.")
