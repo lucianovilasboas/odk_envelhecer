@@ -35,3 +35,225 @@ def graficos_2x2(df, coluna, municipios, pergunta):
     plt.suptitle(pergunta, fontsize=16, fontweight='bold', y=1.03)
     plt.tight_layout()
     plt.show()
+
+
+# --- Mapeamentos de Respostas ---
+
+mapa_sim_nao = {
+    '1': 'Sim',
+    '2': 'Não',
+    '3': 'Não sabe/não responde'
+}
+
+mapa_genero = {
+    '1': 'Masculino',
+    '2': 'Feminino',
+    '3': 'Não binárie',
+    '4': 'Outro',
+    '5': 'Não sabe/não responde'
+}
+
+mapa_etnia = {
+    '1': 'Branca',
+    '2': 'Amarela',
+    '3': 'Parda',
+    '4': 'Preta',
+    '5': 'Indígena',
+    '6': 'Não sabe/não responde'
+}
+
+mapa_escolaridade = {
+    '1': 'Não alfabetizado',
+    '2': 'Ensino fundamental incompleto',
+    '3': 'Ensino fundamental completo',
+    '4': 'Ensino médio incompleto',
+    '5': 'Ensino médio completo',
+    '6': 'Ensino superior incompleto',
+    '7': 'Ensino superior completo',
+    '8': 'Pós-graduação completa',
+    '9': 'Pós-graduação incompleta',
+    '10': 'Não sabe/não responde'
+}
+
+mapa_estado_civil = {
+    '1': 'Solteiro',
+    '2': 'Casado',
+    '3': 'Viúvo',
+    '4': 'Divorciado/separado',
+    '5': 'União estável',
+    '6': 'Não sabe/não responde'
+}
+
+mapa_trabalho_nao_remunerado = {
+    '1': 'Voluntário',
+    '2': 'Reprodutivo/doméstico',
+    '3': 'Cuidado com netos, filhos e etc',
+    '4': 'Outro'
+}
+
+mapa_renda_familiar_mensal = {
+    '1': 'Sem renda',
+    '2': 'Até ½ salário mínimo',
+    '3': '1 salário mínimo',
+    '4': 'Acima de 1 e até 2 salários mínimos',
+    '5': 'Acima de 2 até 4 salários mínimos',
+    '6': 'Acima de 4 salários mínimos',
+    '7': 'Não sabe/não responde'
+}
+
+mapa_renda_individual_mensal = mapa_renda_familiar_mensal.copy()
+
+mapa_fonte_renda = {
+    '1': 'Salário/CLT',
+    '2': 'Autônomo',
+    '3': 'Aposentadoria',
+    '4': 'Pensão alimentícia',
+    '5': 'Pensão por viuvez',
+    '6': 'Aluguel ou arrendamento',
+    '7': 'Seguro-desemprego',
+    '8': 'Benefício de Prestação Continuada (BPC/LOAS)',
+    '9': 'Bolsa Família',
+    '10': 'Outros programas sociais do governo',
+    '11': 'Rendimentos de qualquer aplicação financeira',
+    '12': 'Dependente da família ou de responsáveis legais',
+    '13': 'Não sabe/não responde'
+}
+
+mapa_material_paredes = {
+    '1': 'Alvenaria com revestimento ou taipa revestida',
+    '2': 'Alvenaria sem revestimento',
+    '3': 'Taipa sem revestimento',
+    '4': 'Madeira apropriada para construção (aparelhada)',
+    '5': 'Madeira aproveitada',
+    '6': 'Outro material',
+    '7': 'Não sabe/não responde'
+}
+
+mapa_locomocao_diaria = {
+    '1': 'Ônibus',
+    '2': 'Veículo próprio',
+    '3': 'Táxi/Aplicativo',
+    '4': 'Veículo de conhecidos',
+    '5': 'Metrô/Trem',
+    '6': 'Motocicleta',
+    '7': 'Bicicleta',
+    '8': 'A pé',
+    '9': 'Outros',
+    '10': 'Não sabe/não responde'
+}
+
+mapa_avaliacao_saude = {
+    '1': 'Muito Ruim',
+    '2': 'Ruim',
+    '3': 'Regular',
+    '4': 'Boa',
+    '5': 'Muito Boa',
+    '6': 'Não sabe/não responde'
+}
+
+mapa_avaliacao_saude_mental = mapa_avaliacao_saude.copy()
+
+mapa_tipo_comunidade = {
+    '1': 'Indígena',
+    '2': 'Quilombola',
+    '3': 'Ribeirinha/o',
+    '4': 'Terreiro/comunidade de matriz africana',
+    '5': 'Cigano',
+    '6': 'Pescadores artesanais',
+    '7': 'Extrativista',
+    '8': 'Benzedeiros',
+    '9': 'Comunidades de fundos e fechos de pasto',
+    '10': 'Outros'
+}
+
+mapa_dispositivos_eletronicos = mapa_sim_nao.copy()
+
+mapa_tipo_dispositivo = {
+    '1': 'Celular',
+    '2': 'Tablet',
+    '3': 'Notebook',
+    '4': 'Outros',
+    '5': 'Não sabe/não responde'
+}
+
+mapa_cadastro_cras = mapa_sim_nao.copy()
+
+mapa_tipo_servico_cras = {
+    '1': 'Bolsa Família',
+    '2': 'BPC/LOAS',
+    '3': 'Serviço de convivência',
+    '4': 'Cesta básica',
+    '5': 'Vale-gás',
+    '6': 'Não sabe/não responde'
+}
+
+mapa_tipo_deficiencia = {
+    '1': 'Intelectual',
+    '2': 'Física',
+    '3': 'Auditiva',
+    '4': 'Visual',
+    '5': 'Múltipla',
+    '6': 'TEA (Transtorno do Espectro Autista)',
+    '7': 'Não sabe/não responde'
+}
+
+mapa_povo_tradicional = mapa_sim_nao.copy()
+
+mapa_frequencia_visita = {
+    '1': 'Diária',
+    '2': 'Semanal',
+    '3': 'Quinzenal',
+    '4': 'Mensal',
+    '5': 'Irregular',
+    '6': 'Não sabe/não responde'
+}
+
+mapa_respondente = {
+    '1': 'A própria pessoa idosa',
+    '2': 'Outra pessoa.'
+}
+
+
+def aplicar_mapeamentos(df):
+    mapeamentos = {
+        'aspectos_sociodemograficos.genero': mapa_genero,
+        'aspectos_sociodemograficos.cor_etnia': mapa_etnia,
+        'aspectos_sociodemograficos.escolaridade': mapa_escolaridade,
+        'aspectos_sociodemograficos.estado_civil': mapa_estado_civil,
+        'aspectos_sociodemograficos.mora_conjuge': mapa_sim_nao,
+        'aspectos_sociodemograficos.povo_tradicional': mapa_povo_tradicional,
+        'aspectos_sociodemograficos.tipo_comunidade': mapa_tipo_comunidade,
+
+        'trabalho_renda.trabalho_remunerado': mapa_sim_nao,
+        'trabalho_renda.trabalho_nao_remunerado': mapa_sim_nao,
+        'trabalho_renda.tipo_trabalho_nao_remunerado': mapa_trabalho_nao_remunerado,
+        'trabalho_renda.renda_familiar_mensal': mapa_renda_familiar_mensal,
+        'trabalho_renda.renda_individual_mensal': mapa_renda_individual_mensal,
+        'trabalho_renda.fonte_renda': mapa_fonte_renda,
+
+        'moradia_acesso_transporte.material_paredes': mapa_material_paredes,
+        'moradia_acesso_transporte.locomocao_diaria': mapa_locomocao_diaria,
+        'moradia_acesso_transporte.acesso_internet': mapa_sim_nao,
+        'moradia_acesso_transporte.dispositivos_eletronicos': mapa_dispositivos_eletronicos,
+        'moradia_acesso_transporte.tipo_dispositivo': mapa_tipo_dispositivo,
+
+        'apoio_social.apoio_proximo': mapa_sim_nao,
+        'apoio_social.cuidador_pago': mapa_sim_nao,
+        'apoio_social.cuidador_nao_pago': mapa_sim_nao,
+        'apoio_social.cadastro_cras': mapa_cadastro_cras,
+        'apoio_social.tipo_servico_cras': mapa_tipo_servico_cras,
+
+        'condicao_geral_saude.avaliacao_saude': mapa_avaliacao_saude,
+        'condicao_geral_saude.agente_saude_visita': mapa_sim_nao,
+        'condicao_geral_saude.frequencia_visita': mapa_frequencia_visita,
+        'condicao_geral_saude.pcd': mapa_sim_nao,
+        'condicao_geral_saude.tipo_deficiencia': mapa_tipo_deficiencia,
+        'condicao_geral_saude.inseguranca_alimentar': mapa_sim_nao,
+        'condicao_geral_saude.avaliacao_saude_mental': mapa_avaliacao_saude_mental
+    }
+
+    for coluna, mapa in mapeamentos.items():
+        if coluna in df.columns:
+            df[coluna] = df[coluna].astype(str).replace(mapa)
+
+    return df
