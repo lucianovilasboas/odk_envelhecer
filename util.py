@@ -1,5 +1,6 @@
 import requests
 import matplotlib.pyplot as plt
+import pandas as pd
 
 # --- Autenticação Automática ---
 def obter_token():
@@ -37,12 +38,22 @@ def graficos_2x2(df, coluna, municipios, pergunta):
     plt.show()
 
 
+# --- Mapeamentos de Perguntas ---
+mapa_perguntas = {
+    'aspectos_sociodemograficos.tipo_comunidade': 'Qual o tipo de comunidade?',
+    'trabalho_renda.tipo_trabalho_nao_remunerado': 'Qual o tipo de trabalho não remunerado?',
+    'moradia_acesso_transporte.tipo_dispositivo': 'Quais dispositivos possui?',
+    'apoio_social.tipo_servico_cras': 'Quais serviços utiliza no CRAS?',
+    'condicao_geral_saude.tipo_deficiencia': 'Qual o tipo de deficiência?',
+}
+
+
 # --- Mapeamentos de Respostas ---
 
 mapa_sim_nao = {
     '1': 'Sim',
     '2': 'Não',
-    '3': 'Não sabe/não responde'
+    '3': 'NS/NR'
 }
 
 mapa_genero = {
@@ -50,7 +61,7 @@ mapa_genero = {
     '2': 'Feminino',
     '3': 'Não binárie',
     '4': 'Outro',
-    '5': 'Não sabe/não responde'
+    '5': 'NS/NR'
 }
 
 mapa_etnia = {
@@ -59,7 +70,7 @@ mapa_etnia = {
     '3': 'Parda',
     '4': 'Preta',
     '5': 'Indígena',
-    '6': 'Não sabe/não responde'
+    '6': 'NS/NR'
 }
 
 mapa_escolaridade = {
@@ -72,7 +83,7 @@ mapa_escolaridade = {
     '7': 'Ensino superior completo',
     '8': 'Pós-graduação completa',
     '9': 'Pós-graduação incompleta',
-    '10': 'Não sabe/não responde'
+    '10': 'NS/NR'
 }
 
 mapa_estado_civil = {
@@ -81,14 +92,15 @@ mapa_estado_civil = {
     '3': 'Viúvo',
     '4': 'Divorciado/separado',
     '5': 'União estável',
-    '6': 'Não sabe/não responde'
+    '6': 'NS/NR'
 }
 
 mapa_trabalho_nao_remunerado = {
     '1': 'Voluntário',
     '2': 'Reprodutivo/doméstico',
     '3': 'Cuidado com netos, filhos e etc',
-    '4': 'Outro'
+    '4': 'Outro',
+    'None': 'Não'
 }
 
 mapa_renda_familiar_mensal = {
@@ -98,7 +110,7 @@ mapa_renda_familiar_mensal = {
     '4': 'Acima de 1 e até 2 salários mínimos',
     '5': 'Acima de 2 até 4 salários mínimos',
     '6': 'Acima de 4 salários mínimos',
-    '7': 'Não sabe/não responde'
+    '7': 'NS/NR'
 }
 
 mapa_renda_individual_mensal = mapa_renda_familiar_mensal.copy()
@@ -116,7 +128,7 @@ mapa_fonte_renda = {
     '10': 'Outros programas sociais do governo',
     '11': 'Rendimentos de qualquer aplicação financeira',
     '12': 'Dependente da família ou de responsáveis legais',
-    '13': 'Não sabe/não responde'
+    '13': 'NS/NR'
 }
 
 mapa_material_paredes = {
@@ -126,7 +138,7 @@ mapa_material_paredes = {
     '4': 'Madeira apropriada para construção (aparelhada)',
     '5': 'Madeira aproveitada',
     '6': 'Outro material',
-    '7': 'Não sabe/não responde'
+    '7': 'NS/NR'
 }
 
 mapa_locomocao_diaria = {
@@ -139,7 +151,7 @@ mapa_locomocao_diaria = {
     '7': 'Bicicleta',
     '8': 'A pé',
     '9': 'Outros',
-    '10': 'Não sabe/não responde'
+    '10': 'NS/NR'
 }
 
 mapa_avaliacao_saude = {
@@ -148,7 +160,7 @@ mapa_avaliacao_saude = {
     '3': 'Regular',
     '4': 'Boa',
     '5': 'Muito Boa',
-    '6': 'Não sabe/não responde'
+    '6': 'NS/NR'
 }
 
 mapa_avaliacao_saude_mental = mapa_avaliacao_saude.copy()
@@ -163,7 +175,8 @@ mapa_tipo_comunidade = {
     '7': 'Extrativista',
     '8': 'Benzedeiros',
     '9': 'Comunidades de fundos e fechos de pasto',
-    '10': 'Outros'
+    '10': 'Outros',
+    'None': 'Não'
 }
 
 mapa_dispositivos_eletronicos = mapa_sim_nao.copy()
@@ -173,7 +186,8 @@ mapa_tipo_dispositivo = {
     '2': 'Tablet',
     '3': 'Notebook',
     '4': 'Outros',
-    '5': 'Não sabe/não responde'
+    '5': 'NS/NR',
+    'None': 'Não'
 }
 
 mapa_cadastro_cras = mapa_sim_nao.copy()
@@ -184,7 +198,8 @@ mapa_tipo_servico_cras = {
     '3': 'Serviço de convivência',
     '4': 'Cesta básica',
     '5': 'Vale-gás',
-    '6': 'Não sabe/não responde'
+    '6': 'NS/NR',
+    'None': 'Não'
 }
 
 mapa_tipo_deficiencia = {
@@ -194,7 +209,8 @@ mapa_tipo_deficiencia = {
     '4': 'Visual',
     '5': 'Múltipla',
     '6': 'TEA (Transtorno do Espectro Autista)',
-    '7': 'Não sabe/não responde'
+    '7': 'NS/NR',
+    'None': 'Não'
 }
 
 mapa_povo_tradicional = mapa_sim_nao.copy()
@@ -205,7 +221,7 @@ mapa_frequencia_visita = {
     '3': 'Quinzenal',
     '4': 'Mensal',
     '5': 'Irregular',
-    '6': 'Não sabe/não responde'
+    '6': 'NS/NR'
 }
 
 mapa_respondente = {
@@ -235,19 +251,19 @@ def aplicar_mapeamentos(df):
         'moradia_acesso_transporte.locomocao_diaria': mapa_locomocao_diaria,
         'moradia_acesso_transporte.acesso_internet': mapa_sim_nao,
         'moradia_acesso_transporte.dispositivos_eletronicos': mapa_dispositivos_eletronicos,
-        'moradia_acesso_transporte.tipo_dispositivo': mapa_tipo_dispositivo,
+#        'moradia_acesso_transporte.tipo_dispositivo': mapa_tipo_dispositivo,
 
         'apoio_social.apoio_proximo': mapa_sim_nao,
         'apoio_social.cuidador_pago': mapa_sim_nao,
         'apoio_social.cuidador_nao_pago': mapa_sim_nao,
         'apoio_social.cadastro_cras': mapa_cadastro_cras,
-        'apoio_social.tipo_servico_cras': mapa_tipo_servico_cras,
+#        'apoio_social.tipo_servico_cras': mapa_tipo_servico_cras,
 
         'condicao_geral_saude.avaliacao_saude': mapa_avaliacao_saude,
         'condicao_geral_saude.agente_saude_visita': mapa_sim_nao,
         'condicao_geral_saude.frequencia_visita': mapa_frequencia_visita,
         'condicao_geral_saude.pcd': mapa_sim_nao,
-        'condicao_geral_saude.tipo_deficiencia': mapa_tipo_deficiencia,
+#        'condicao_geral_saude.tipo_deficiencia': mapa_tipo_deficiencia,
         'condicao_geral_saude.inseguranca_alimentar': mapa_sim_nao,
         'condicao_geral_saude.avaliacao_saude_mental': mapa_avaliacao_saude_mental
     }
@@ -256,4 +272,46 @@ def aplicar_mapeamentos(df):
         if coluna in df.columns:
             df[coluna] = df[coluna].astype(str).replace(mapa)
 
+    df = mapear_respostas_multiplas(df)
     return df
+
+
+
+def mapear_respostas_multiplas(df):
+    """
+    Mapeia as respostas de uma coluna com múltiplas opções de resposta.
+    """
+    mapeamentos = {
+        'moradia_acesso_transporte.tipo_dispositivo': mapa_tipo_dispositivo,
+        'apoio_social.tipo_servico_cras': mapa_tipo_servico_cras,
+        'condicao_geral_saude.tipo_deficiencia': mapa_tipo_deficiencia,
+    }
+
+    for coluna, mapa in mapeamentos.items():
+        if coluna in df.columns:
+            # Função para aplicar o mapeamento
+            def mapear_multiplas_escolhas(valor):
+                if pd.isna(valor) or valor == '':
+                    return 'NS/NR'
+                codigos = valor.strip().split()
+                descricoes = [mapa.get(codigo, "Não") for codigo in codigos]
+                return ', '.join(descricoes)
+            # Aplica ao DataFrame
+            df[coluna] = df[coluna].astype(str).apply(mapear_multiplas_escolhas)
+        
+    return df
+    
+
+
+def plot_pergunta(st, px,  df, coluna, valor_excluir):
+    df_bar = df.groupby(["Municipio", coluna]).size().reset_index(name="count")
+    if valor_excluir:
+        df_bar = df_bar[df_bar[coluna] != valor_excluir]
+        
+    df_bar["percentual"] = df_bar.groupby("Municipio")["count"].transform(lambda x: x / x.sum()) * 100
+    fig_bar = px.bar(
+        df_bar, x="Municipio", y="percentual", color=coluna,
+        barmode="stack", labels={"percentual": "Proporção"},
+        title=f"{coluna}"
+    )
+    st.plotly_chart(fig_bar, use_container_width=True)

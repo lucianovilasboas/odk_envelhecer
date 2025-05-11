@@ -1,9 +1,8 @@
 import streamlit as st
 import requests
 import pandas as pd
-import matplotlib.pyplot as plt
 import plotly.express as px
-from util import obter_token, aplicar_mapeamentos
+from util import obter_token, aplicar_mapeamentos, plot_pergunta, mapa_perguntas
 
 st.set_page_config(layout="wide")
 
@@ -33,30 +32,23 @@ if odk_token:
         "Priscila Lopes Ferreira (Amparo Serra)": "Priscila Lopes Ferreira (A. Serra)"
     }
 
-#    sim_nao_map = {'1': 'Sim', '2': 'Não', '3': 'NS/NR'}
-
     df["__system.submitterName"] = df["__system.submitterName"].replace(nomes_map)
     df["timestamp"] = pd.to_datetime(df["__system.submissionDate"])
     df["data"] = df['timestamp'].dt.date
     df["Municipio"] = df["__system.submitterName"].apply(lambda n: n.replace(")", "").split("(")[-1])
 
-#    df['moradia_acesso_transporte.acesso_internet'] = df['moradia_acesso_transporte.acesso_internet'].replace(sim_nao_map)
-#    df['condicao_geral_saude.pcd'] = df['condicao_geral_saude.pcd'].replace(sim_nao_map)
-#    df['condicao_geral_saude.agente_saude_visita'] = df['condicao_geral_saude.agente_saude_visita'].replace(sim_nao_map)
-
-    # --- Mapeamentos de Respostas ---
     df = aplicar_mapeamentos(df)
 
-    # --- Filtro de pergunta ---
+    perguntas_vinculadas = {
+        'aspectos_sociodemograficos.povo_tradicional':'aspectos_sociodemograficos.tipo_comunidade',
+        'moradia_acesso_transporte.dispositivos_eletronicos': 'moradia_acesso_transporte.tipo_dispositivo',
+        'apoio_social.cadastro_cras': 'apoio_social.tipo_servico_cras',
+        'condicao_geral_saude.pcd': 'condicao_geral_saude.tipo_deficiencia',
+        'trabalho_renda.trabalho_nao_remunerado': 'trabalho_renda.tipo_trabalho_nao_remunerado',
+    }
+
     st.sidebar.header("Selecione uma...")
     pergunta = st.sidebar.selectbox("Pergunta", [
-
-#        ("moradia_acesso_transporte.acesso_internet", "Possui acesso à Internet?"),
-#        ("moradia_acesso_transporte.horas_internet", "Quantas horas de Internet por dia?"),
-#        ("condicao_geral_saude.pcd", "Você se considera uma Pessoa com Deficiência (PcD)?"),
-#        ("condicao_geral_saude.agente_saude_visita", "Algum agente de saúde te visita?"),
-#        ("condicao_geral_saude.frequencia_visita", "Qual a frequência de visitas do ACS?")
-
         ('aspectos_sociodemograficos.idade', 'Qual a idade?'),
         ('aspectos_sociodemograficos.genero', 'Qual o seu gênero?'),
         ('aspectos_sociodemograficos.cor_etnia', 'Qual a sua cor ou etnia?'),
@@ -65,7 +57,6 @@ if odk_token:
         ('aspectos_sociodemograficos.mora_conjuge', 'Mora com cônjuge ou parceiro(a)?'),
         ('aspectos_sociodemograficos.povo_tradicional', 'Pertence a povo ou comunidade tradicional?'),
         ('aspectos_sociodemograficos.tipo_comunidade', 'Qual o tipo de comunidade?'),
-
         ('trabalho_renda.trabalho_remunerado', 'Tem trabalho remunerado?'),
         ('trabalho_renda.trabalho_nao_remunerado', 'Faz trabalho não remunerado?'),
         ('trabalho_renda.tipo_trabalho_nao_remunerado', 'Qual o tipo de trabalho não remunerado?'),
@@ -73,7 +64,6 @@ if odk_token:
         ('trabalho_renda.renda_individual_mensal', 'Qual a sua renda mensal individual?'),
         ('trabalho_renda.fonte_renda', 'Qual a principal fonte de renda?'),
         ('trabalho_renda.dependentes_renda', 'Quantas pessoas dependem da sua renda?'),
-
         ('moradia_acesso_transporte.material_paredes', 'Qual o material das paredes da casa?'),
         ('moradia_acesso_transporte.outro_material_text', 'Qual outro material (se houver)?'),
         ('moradia_acesso_transporte.pessoas_moradia', 'Quantas pessoas moram com você?'),
@@ -84,7 +74,6 @@ if odk_token:
         ('moradia_acesso_transporte.horas_internet', 'Quantas horas usa internet por dia?'),
         ('moradia_acesso_transporte.dispositivos_eletronicos', 'Tem dispositivos eletrônicos em casa?'),
         ('moradia_acesso_transporte.tipo_dispositivo', 'Quais dispositivos possui?'),
-
         ('apoio_social.apoio_proximo', 'Recebe apoio de alguém próximo?'),
         ('apoio_social.apoio_proximo_quem', 'Quem oferece esse apoio?'),
         ('apoio_social.cuidador_pago', 'Tem cuidador pago?'),
@@ -93,7 +82,6 @@ if odk_token:
         ('apoio_social.cuidador_nao_pago_quem', 'Quem é o cuidador não pago?'),
         ('apoio_social.cadastro_cras', 'Está cadastrado no CRAS?'),
         ('apoio_social.tipo_servico_cras', 'Quais serviços utiliza no CRAS?'),
-
         ('condicao_geral_saude.avaliacao_saude', 'Como avalia sua saúde?'),
         ('condicao_geral_saude.agente_saude_visita', 'Recebe visita de agente de saúde?'),
         ('condicao_geral_saude.frequencia_visita', 'Com que frequência o agente visita?'),
@@ -101,18 +89,13 @@ if odk_token:
         ('condicao_geral_saude.tipo_deficiencia', 'Qual o tipo de deficiência?'),
         ('condicao_geral_saude.inseguranca_alimentar', 'Vivencia insegurança alimentar?'),
         ('condicao_geral_saude.avaliacao_saude_mental', 'Como avalia sua saúde mental?')
-
-        
     ], format_func=lambda x: x[1])
 
     coluna, titulo = pergunta
-
     st.header(f"Total Geral de Respostas: {len(df)}")
 
-    # --- Layout principal ---
+    # Layout principal
     col1, col2 = st.columns(2)
-
-    # 1. Gráfico: Total de Respostas por Município
     with col1:
         st.subheader("1. Total de Respostas por Município")
         df_municipio = df.groupby("Municipio").size().reset_index(name='Total_Respostas')
@@ -120,7 +103,6 @@ if odk_token:
         fig_total.update_layout(yaxis_title="Total de Respostas", xaxis_title="Município")
         st.plotly_chart(fig_total, use_container_width=True)
 
-    # 2. Gráfico: Evolução das Respostas ao Longo do Tempo
     with col2:
         st.subheader("2. Evolução das Respostas ao Longo do Tempo")
         df_grouped = df.groupby(["Municipio", "data"]).size().reset_index(name="Total_Respostas")
@@ -128,26 +110,18 @@ if odk_token:
         fig_evolucao.update_layout(xaxis_title="Data", yaxis_title="Número de Respostas")
         st.plotly_chart(fig_evolucao, use_container_width=True)
 
-    # 3. Gráfico: Distribuição por Município da Pergunta Selecionada
-    st.header(f"Visualização: {titulo}")
-    st.subheader("3. Distribuição das Respostas por Município")
-    df_bar = df.groupby(["Municipio", coluna]).size().reset_index(name="count")
-    df_bar["percentual"] = df_bar.groupby("Municipio")["count"].transform(lambda x: x / x.sum()) * 100
+    # Gráfico da pergunta principal
+    st.header("3. Distribuição das Respostas por Município")
+    st.subheader(f"Visualização: {titulo}")
 
-    # Cores personalizadas para Sim/Não/NSNR
-    cores_personalizadas = {
-        "Sim": "green",
-        "Não": "red",
-        "NS/NR": "gray"
-    }
 
-    fig_bar = px.bar(
-        df_bar, x="Municipio", y="percentual", color=coluna,
-        color_discrete_map=cores_personalizadas,
-        barmode="stack",
-        labels={"percentual": "Proporção"}
-    )
-    st.plotly_chart(fig_bar, use_container_width=True)
+    # Pergunta principal
+    plot_pergunta(st, px, df, coluna, None)
 
+    # Verifica se há pergunta vinculada
+    pergunta_vinculada = perguntas_vinculadas.get(coluna)
+    if pergunta_vinculada:
+        st.subheader(f"Visualização: {mapa_perguntas.get(pergunta_vinculada,pergunta_vinculada)}")
+        plot_pergunta(st, px, df, pergunta_vinculada, valor_excluir="Não")
 else:
     st.error("Erro ao obter o token de autenticação. Verifique suas credenciais.")
