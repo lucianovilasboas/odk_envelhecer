@@ -113,14 +113,13 @@ if odk_token:
     # Gráfico da pergunta principal
     st.header("3. Distribuição das Respostas por Município")
     st.subheader(f"Visualização: {titulo}")
-
-
     # Pergunta principal
     plot_pergunta(st, px, df, coluna, None)
 
     # Verifica se há pergunta vinculada
     pergunta_vinculada = perguntas_vinculadas.get(coluna)
     if pergunta_vinculada:
+        st.info("Apresetamos a seguir a distribuição das respostas para quem disse sim à pergunta acima.")
         st.subheader(f"Visualização: {mapa_perguntas.get(pergunta_vinculada,pergunta_vinculada)}")
         plot_pergunta(st, px, df, pergunta_vinculada, valor_excluir="Não")
 else:
