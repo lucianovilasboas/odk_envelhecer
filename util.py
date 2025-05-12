@@ -38,6 +38,50 @@ def graficos_2x2(df, coluna, municipios, pergunta):
     plt.show()
 
 
+lista_perguntas = [
+        ('aspectos_sociodemograficos.idade', 'Qual a idade?'),
+        ('aspectos_sociodemograficos.genero', 'Qual o seu gênero?'),
+        ('aspectos_sociodemograficos.cor_etnia', 'Qual a sua cor ou etnia?'),
+        ('aspectos_sociodemograficos.escolaridade', 'Qual o seu nível de escolaridade?'),
+        ('aspectos_sociodemograficos.estado_civil', 'Qual o seu estado civil?'),
+        ('aspectos_sociodemograficos.mora_conjuge', 'Mora com cônjuge ou parceiro(a)?'),
+        ('aspectos_sociodemograficos.povo_tradicional', '*Pertence a povo ou comunidade tradicional?'),
+        ('aspectos_sociodemograficos.tipo_comunidade', 'Qual o tipo de comunidade?'),
+        ('trabalho_renda.trabalho_remunerado', 'Tem trabalho remunerado?'),
+        ('trabalho_renda.trabalho_nao_remunerado', '*Faz trabalho não remunerado?'),
+        ('trabalho_renda.tipo_trabalho_nao_remunerado', 'Qual o tipo de trabalho não remunerado?'),
+        ('trabalho_renda.renda_familiar_mensal', 'Qual a renda familiar mensal?'),
+        ('trabalho_renda.renda_individual_mensal', 'Qual a sua renda mensal individual?'),
+        ('trabalho_renda.fonte_renda', 'Qual a principal fonte de renda?'),
+        ('trabalho_renda.dependentes_renda', 'Quantas pessoas dependem da sua renda?'),
+        ('moradia_acesso_transporte.material_paredes', 'Qual o material das paredes da casa?'),
+        ('moradia_acesso_transporte.outro_material_text', 'Qual outro material (se houver)?'),
+        ('moradia_acesso_transporte.pessoas_moradia', 'Quantas pessoas moram com você?'),
+        ('moradia_acesso_transporte.quantidade_comodos', 'Quantos cômodos tem a residência?'),
+        ('moradia_acesso_transporte.locomocao_diaria', 'Qual o meio de locomoção mais usado no dia a dia?'),
+        ('moradia_acesso_transporte.outros_qual', 'Qual outro meio de locomoção (se houver)?'),
+        ('moradia_acesso_transporte.acesso_internet', 'Tem acesso à internet?'),
+        ('moradia_acesso_transporte.horas_internet', 'Quantas horas usa internet por dia?'),
+        ('moradia_acesso_transporte.dispositivos_eletronicos', '*Tem dispositivos eletrônicos em casa?'),
+        ('moradia_acesso_transporte.tipo_dispositivo', 'Quais dispositivos possui?'),
+        ('apoio_social.apoio_proximo', 'Recebe apoio de alguém próximo?'),
+        ('apoio_social.apoio_proximo_quem', 'Quem oferece esse apoio?'),
+        ('apoio_social.cuidador_pago', 'Tem cuidador pago?'),
+        ('apoio_social.cuidador_pago_quem', 'Quem é o cuidador pago?'),
+        ('apoio_social.cuidador_nao_pago', 'Tem cuidador não pago?'),
+        ('apoio_social.cuidador_nao_pago_quem', 'Quem é o cuidador não pago?'),
+        ('apoio_social.cadastro_cras', '*Está cadastrado no CRAS?'),
+        ('apoio_social.tipo_servico_cras', 'Quais serviços utiliza no CRAS?'),
+        ('condicao_geral_saude.avaliacao_saude', 'Como avalia sua saúde?'),
+        ('condicao_geral_saude.agente_saude_visita', 'Recebe visita de agente de saúde?'),
+        ('condicao_geral_saude.frequencia_visita', 'Com que frequência o agente visita?'),
+        ('condicao_geral_saude.pcd', '*É pessoa com deficiência (PCD)?'),
+        ('condicao_geral_saude.tipo_deficiencia', 'Qual o tipo de deficiência?'),
+        ('condicao_geral_saude.inseguranca_alimentar', 'Vivencia insegurança alimentar?'),
+        ('condicao_geral_saude.avaliacao_saude_mental', 'Como avalia sua saúde mental?')
+]
+
+ 
 # --- Mapeamentos de Perguntas ---
 mapa_perguntas = {
     'aspectos_sociodemograficos.tipo_comunidade': 'Qual o tipo de comunidade?',
@@ -49,7 +93,6 @@ mapa_perguntas = {
 
 
 # --- Mapeamentos de Respostas ---
-
 mapa_sim_nao = {
     '1': 'Sim',
     '2': 'Não',
@@ -338,7 +381,7 @@ def plot_pergunta(st, px, df, coluna, valor_excluir):
         color=coluna,
         barmode="stack",
         labels={"percentual": "Proporção (%)", "Municipio_total": "Municipio"},
-        title=f"{coluna}",
+        title=f"{mapa_perguntas.get(coluna, coluna)}",
         hover_data={
             "Municipio_total": True,
             coluna: True,
@@ -348,7 +391,7 @@ def plot_pergunta(st, px, df, coluna, valor_excluir):
     )
 
     fig_bar.update_traces(
-        hovertemplate="<b>%{x}</b><br>"
+        hovertemplate= "<b>%{x}</b><br>"
                       + f"N° respostas: %{{customdata[1]}}<br>"
                       + "Percentual: %{y:.1f}%<br>"
     )
