@@ -303,15 +303,61 @@ def mapear_respostas_multiplas(df):
     
 
 
-def plot_pergunta(st, px,  df, coluna, valor_excluir):
+# def plot_pergunta(st, px,  df, coluna, valor_excluir):
+#     df_bar = df.groupby(["Municipio", coluna]).size().reset_index(name="count")
+#     if valor_excluir:
+#         df_bar = df_bar[df_bar[coluna] != valor_excluir]
+
+#     df_bar["percentual"] = df_bar.groupby("Municipio")["count"].transform(lambda x: x / x.sum()) * 100
+#     fig_bar = px.bar(
+#         df_bar, x="Municipio", y="percentual", color=coluna,
+#         barmode="stack", labels={"percentual": "Proporção"},
+#         title=f"{coluna}"
+#     )
+#     st.plotly_chart(fig_bar, use_container_width=True)
+
+
+def plot_pergunta(st, px, df, coluna, valor_excluir):
     df_bar = df.groupby(["Municipio", coluna]).size().reset_index(name="count")
     if valor_excluir:
         df_bar = df_bar[df_bar[coluna] != valor_excluir]
-        
+
     df_bar["percentual"] = df_bar.groupby("Municipio")["count"].transform(lambda x: x / x.sum()) * 100
+
+    totals = df_bar.groupby("Municipio")["count"].sum().reset_index()
+    totals_dict = dict(zip(totals['Municipio'], totals['count']))
+
+    # Atualiza os nomes dos municípios com o total
+    df_bar["Municipio_total"] = df_bar["Municipio"].apply(lambda x: f"{x} ({totals_dict[x]})")
+
+    # Gerar gráfico com percentual com duas casas decimais e hover personalizado
     fig_bar = px.bar(
-        df_bar, x="Municipio", y="percentual", color=coluna,
-        barmode="stack", labels={"percentual": "Proporção"},
-        title=f"{coluna}"
+        df_bar,
+        x="Municipio_total",
+        y="percentual",
+        color=coluna,
+        barmode="stack",
+        labels={"percentual": "Proporção (%)", "Municipio_total": "Municipio"},
+        title=f"{coluna}",
+        hover_data={
+            "Municipio_total": True,
+            coluna: True,
+            "percentual": ":.2f",
+            "count": True
+        }
     )
+
+    fig_bar.update_traces(
+        hovertemplate="<b>%{x}</b><br>"
+                      + f"N° respostas: %{{customdata[1]}}<br>"
+                      + "Percentual: %{y:.1f}%<br>"
+    )
+
+    # Ajustar fonte da legenda e dos títulos dos eixos
+    fig_bar.update_layout(
+        legend=dict(font=dict(size=16)),
+        xaxis=dict(title_font=dict(size=15)),
+        yaxis=dict(title_font=dict(size=15))
+    )
+
     st.plotly_chart(fig_bar, use_container_width=True)
