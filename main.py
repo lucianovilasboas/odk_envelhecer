@@ -26,10 +26,11 @@ if odk_token:
         "Iphone Leandro Santa Cruz": "Leandro (SC. Escalvado)",
         "Iphone Camila Santa Cruz": "Camila (SC. Escalvado)",
         "Iphone Giovanna Barra Longa": "Giovanna (B. Longa)",
-        "Iphone Andriele": "Andriele ()",
+        "Iphone Andriele": "Andriele (B. Longa)",
         "Iphone Maria Clara Barra Longa": "Maria Clara (B. Longa)",
         "iPhone João Barra Longa": "João (B. Longa)",
-        "Priscila Lopes Ferreira (Amparo Serra)": "Priscila Lopes Ferreira (A. Serra)"
+        "Priscila Lopes Ferreira (Amparo Serra)": "Priscila Lopes Ferreira (A. Serra)",
+        "Iphone Gleysimara": "Gleysimara (A. Serra)",
     }
 
     df["__system.submitterName"] = df["__system.submitterName"].replace(nomes_map)
