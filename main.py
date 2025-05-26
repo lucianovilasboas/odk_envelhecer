@@ -2,7 +2,8 @@ import streamlit as st
 import requests
 import pandas as pd
 import plotly.express as px
-from util import obter_token, aplicar_mapeamentos, plot_pergunta, mapa_perguntas, lista_perguntas
+from util import obter_token, aplicar_mapeamentos, plot_mapa, plot_pergunta, mapa_perguntas, lista_perguntas
+from util import plot_ranking
 
 st.set_page_config(layout="wide")
 
@@ -12,7 +13,7 @@ with image_col:
     st.image("Envelhecer_nos_territrios.png", width=200)
 st.title("Dashboard - Projeto Envelhecer Nos Territórios")
 
-odk_token = obter_token()
+odk_token = obter_token(st)
 
 if odk_token:
     headers = {"Authorization": f"Bearer {odk_token}"}
@@ -73,33 +74,15 @@ if odk_token:
 
     # Graficos de rancking por agente 
     st.subheader("3. Ranking de Respostas por Agente")
-    df_agente = df.groupby(['__system.submitterName'])['__id'].count().reset_index().sort_values('__id', ascending=True)
-    # Cria o gráfico de barras horizontal
-    fig = px.bar(
-        df_agente,
-        x="__id",
-        y="__system.submitterName",
-        orientation="h",
-        title="Ranking dos Agentes",
-        labels={
-            "__system.submitterName": "Nome do Agente",
-            "__id": "Número de Questionários Respondidos"
-        }
-    )
+    plot_ranking(st, px, df, '__system.submitterName') 
 
-    # Ajusta layout para melhor leitura
-    fig.update_layout(
-        margin=dict(l=200, r=20, t=50, b=20),
-        yaxis=dict(tickfont=dict(size=10))
-    )
-
-    # Exibe no Streamlit
-    st.plotly_chart(fig, use_container_width=True)    
-
+    # Streamlit App
+    st.subheader("4. Localizações Geográficas")
+    plot_mapa(st, px, df, 'localizacao.coordinates')
 
 
     # Gráfico da pergunta principal
-    st.header("4. Distribuição das Respostas por Município")
+    st.header("5. Distribuição das Respostas por Município")
     st.subheader(f"Visualização: {titulo}")
     # Pergunta principal
     plot_pergunta(st, px, df, coluna, None)
@@ -108,7 +91,9 @@ if odk_token:
     pergunta_vinculada = perguntas_vinculadas.get(coluna)
     if pergunta_vinculada:
         st.info("Apresetamos a seguir a distribuição das respostas para quem disse sim à pergunta acima.")
-        st.subheader(f"Visualização: {mapa_perguntas.get(pergunta_vinculada,pergunta_vinculada)}")
+        st.subheader(f"5.1 Visualização: {mapa_perguntas.get(pergunta_vinculada,pergunta_vinculada)}")
         plot_pergunta(st, px, df, pergunta_vinculada, valor_excluir="Não")
+
+
 else:
     st.error("Erro ao obter o token de autenticação. Verifique suas credenciais.")

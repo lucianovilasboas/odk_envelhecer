@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 # --- Autenticação Automática ---
-def obter_token():
+def obter_token(st):
     url = "https://odk.envelhecer.online/v1/sessions"
     dados = {
-        "email": "lucianovilasboas@gmail.com",
-        "password": "9419131773"
+        "email": st.secrets["general"]["Email"],
+        "password": st.secrets["general"]["Passw"]
     }
     resposta = requests.post(url, json=dados)
     if resposta.status_code == 200:
@@ -360,6 +360,32 @@ def mapear_respostas_multiplas(df):
 #     st.plotly_chart(fig_bar, use_container_width=True)
 
 
+def plot_ranking(st, px, df, coluna):
+    df_agente = df.groupby([coluna])['__id'].count().reset_index().sort_values('__id', ascending=True)
+    # Cria o gráfico de barras horizontal
+    fig = px.bar(
+        df_agente,
+        x="__id",
+        y=coluna,
+        orientation="h",
+        title="Ranking por Agentes",
+        labels={
+            coluna: "Nome do Agente",
+            "__id": "Número de Questionários Aplicados"
+        }
+    )
+
+    # Ajusta layout para melhor leitura
+    fig.update_layout(
+        margin=dict(l=200, r=20, t=50, b=20),
+        yaxis=dict(tickfont=dict(size=10))
+    )
+
+    # Exibe no Streamlit
+    st.plotly_chart(fig, use_container_width=True)     
+
+
+
 def plot_pergunta(st, px, df, coluna, valor_excluir):
     df_bar = df.groupby(["Municipio", coluna]).size().reset_index(name="count")
     if valor_excluir:
@@ -404,3 +430,52 @@ def plot_pergunta(st, px, df, coluna, valor_excluir):
     )
 
     st.plotly_chart(fig_bar, use_container_width=True)
+
+
+
+# Função de plotagem
+def plot_mapa(st, px, df, coluna):
+    """
+    Plota um mapa de coordenadas geográficas com cor por município.
+
+    Parâmetros:
+    - st: módulo streamlit
+    - px: módulo plotly.express
+    - df: dataframe contendo a coluna de coordenadas
+    - coluna: nome da coluna que possui as coordenadas no formato [longitude, latitude]
+    """
+
+    # Filtra registros com coordenadas não nulas
+    df_filtered = df[~df[coluna].isna()].copy()
+
+    if df_filtered.empty:
+        st.warning("Não há dados com coordenadas válidas para exibir no mapa.")
+        return
+
+    # Extrai Longitude e Latitude
+    df_filtered['Longitude'] = df_filtered[coluna].apply(lambda x: x[0])
+    df_filtered['Latitude'] = df_filtered[coluna].apply(lambda x: x[1])
+
+    # st.subheader("Dados com Coordenadas")
+    # st.dataframe(df_filtered[['Municipio', '__system.submitterName', 'Latitude', 'Longitude']])
+
+    # Cria o mapa com cor por município
+    fig = px.scatter_mapbox(
+        df_filtered,
+        lat="Latitude",
+        lon="Longitude",
+        # color="Municipio",  # Colore por município
+        color="__system.submitterName",  # Colore por agente        
+        hover_name="__system.submitterName",
+        hover_data={"Municipio": True, 'Latitude': True, 'Longitude': True, "__system.submitterName": False},
+        zoom=10,
+        height=700
+    )
+
+    fig.update_layout(
+        mapbox_style="open-street-map",
+        margin={"r": 0, "t": 0, "l": 0, "b": 0},
+        dragmode="zoom"  # Permite zoom com o mouse
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
