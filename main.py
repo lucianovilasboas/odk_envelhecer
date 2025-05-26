@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.express as px
 from util import obter_token, aplicar_mapeamentos, plot_mapa, plot_pergunta, mapa_perguntas, lista_perguntas
 from util import plot_ranking
+from util import calcular_metricas_fixar_segunda_sexta as calcular_metricas, exibe_metricas
 
 st.set_page_config(layout="wide")
 
@@ -13,7 +14,7 @@ with image_col:
     # st.image("Envelhecer_nos_territrios.png", width=200)
     st.image("ENVELHECER - IFMG - PONTE NOVA.png")
         
-st.html("""<h1 style='text-align: center; color: #FFF; font-size:38px'>Dashboard - Projeto Envelhecer Nos Territórios</h1>""")
+st.html("""<h1 style='text-align: center; color: #FFF; font-size:35px'>Dashboard - Projeto Envelhecer Nos Territórios</h1>""")
 
 odk_token = obter_token(st)
 
@@ -55,7 +56,11 @@ if odk_token:
     pergunta = st.sidebar.selectbox("Pergunta", lista_perguntas, format_func=lambda x: x[1])
 
     coluna, titulo = pergunta
-    st.subheader(f"Total Geral de Respostas: {len(df)}")
+    # st.subheader(f"Total Geral de Respostas: {len(df)}")
+
+    # Progresso
+    metricas = calcular_metricas(st, df)
+    exibe_metricas(st, metricas) 
 
     # Layout principal
     col1, col2 = st.columns([2, 5])
