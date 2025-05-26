@@ -7,11 +7,13 @@ from util import plot_ranking
 
 st.set_page_config(layout="wide")
 
-_, image_col, _ = st.columns([2,1,2])
+_, image_col, _ = st.columns([1,4,1])
 
 with image_col:
-    st.image("Envelhecer_nos_territrios.png", width=200)
-st.title("Dashboard - Projeto Envelhecer Nos Territórios")
+    # st.image("Envelhecer_nos_territrios.png", width=200)
+    st.image("ENVELHECER - IFMG - PONTE NOVA.png")
+        
+st.html("""<h1 style='text-align: center; color: #FFF; font-size:38px'>Dashboard - Projeto Envelhecer Nos Territórios</h1>""")
 
 odk_token = obter_token(st)
 
@@ -53,7 +55,7 @@ if odk_token:
     pergunta = st.sidebar.selectbox("Pergunta", lista_perguntas, format_func=lambda x: x[1])
 
     coluna, titulo = pergunta
-    st.header(f"Total Geral de Respostas: {len(df)}")
+    st.subheader(f"Total Geral de Respostas: {len(df)}")
 
     # Layout principal
     col1, col2 = st.columns([2, 5])
@@ -82,8 +84,8 @@ if odk_token:
 
 
     # Gráfico da pergunta principal
-    st.header("5. Distribuição das Respostas por Município")
-    st.subheader(f"Visualização: {titulo}")
+    st.header("Distribuição das Respostas por Município")
+    st.subheader(f"5. Visualização: {titulo}")
     # Pergunta principal
     plot_pergunta(st, px, df, coluna, None)
 

@@ -1,0 +1,5 @@
+# ignore .streamlit/
+.streamlit/config.toml
+
+
+
