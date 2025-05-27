@@ -552,11 +552,11 @@ def calcular_metricas_fixar_segunda_sexta(st, df):
     # ============================
     hoje = datetime.now()
     dia_da_semana = hoje.weekday()  # segunda=0, sexta=4, domingo=6
-    print(f"Hoje: {hoje}, Dia da Semana: {dia_da_semana}")
+    # print(f"Hoje: {hoje}, Dia da Semana: {dia_da_semana}")
 
     # Início da semana = segunda-feira, iniciando às 00:00:00
     inicio_semana = (hoje - timedelta(days=dia_da_semana)).replace(hour=0, minute=0, second=0, microsecond=0)
-    print(f"Início da Semana: {inicio_semana}")
+    # print(f"Início da Semana: {inicio_semana}")
 
     # Fim da semana = sexta-feira
     fim_semana = inicio_semana + timedelta(days=4)
@@ -590,7 +590,7 @@ def calcular_metricas_fixar_segunda_sexta(st, df):
     # ============================
     meta_geral = 5000
     meta_mensal = 1500
-    meta_semanal = 200
+    meta_semanal = 130
 
     meta_geral_percentual = (total_cadastros / meta_geral) * 100
     meta_mensal_percentual = (cadastros_mes / meta_mensal) * 100
