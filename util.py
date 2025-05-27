@@ -542,7 +542,7 @@ def calcular_metricas_fixar_segunda_sexta(st, df):
         df['__system.submissionDate'],
         format='%Y-%m-%dT%H:%M:%S.%fZ',
         errors='coerce'
-    ).dt.tz_localize(None)  # Remove timezone se houver
+    ) #.dt.tz_localize(None)  # Remove timezone se houver
 
     # Total de cadastros
     total_cadastros = df.shape[0]
@@ -552,9 +552,11 @@ def calcular_metricas_fixar_segunda_sexta(st, df):
     # ============================
     hoje = datetime.now()
     dia_da_semana = hoje.weekday()  # segunda=0, sexta=4, domingo=6
+    print(f"Hoje: {hoje}, Dia da Semana: {dia_da_semana}")
 
-    # Início da semana = segunda-feira
-    inicio_semana = hoje - timedelta(days=dia_da_semana)
+    # Início da semana = segunda-feira, iniciando às 00:00:00
+    inicio_semana = (hoje - timedelta(days=dia_da_semana)).replace(hour=0, minute=0, second=0, microsecond=0)
+    print(f"Início da Semana: {inicio_semana}")
 
     # Fim da semana = sexta-feira
     fim_semana = inicio_semana + timedelta(days=4)

@@ -1,9 +1,6 @@
 # ignore .streamlit/
-.streamlit/config.toml
-
-__pycache__/*
-
-
+__pycache__/
+.streamlit/
 app.py
 app2.py
 
