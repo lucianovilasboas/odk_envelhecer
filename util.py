@@ -512,7 +512,7 @@ def calcular_metricas(st, df):
     # Meta (ajustável conforme necessidade)
     meta_geral = 5000  # Valor ajustável
     meta_mensal = 1500   # Valor ajustável
-    meta_semanal = 400  # Valor ajustável
+    meta_semanal = 200  # Valor ajustável
 
     meta_geral_percentual = (total_cadastros / meta_geral) * 100
     meta_mensal_percentual = (cadastros_mes / meta_mensal) * 100
