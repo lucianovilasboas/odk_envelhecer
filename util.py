@@ -590,7 +590,7 @@ def calcular_metricas_fixar_segunda_sexta(st, df):
     # ============================
     meta_geral = 5000
     meta_mensal = 1500
-    meta_semanal = 130
+    meta_semanal = 150
 
     meta_geral_percentual = (total_cadastros / meta_geral) * 100
     meta_mensal_percentual = (cadastros_mes / meta_mensal) * 100
