@@ -5,10 +5,10 @@ import pandas as pd
 
 # --- Autenticação Automática ---
 def obter_token(st):
-    url = "https://odk.envelhecer.online/v1/sessions"
+    url = st.secrets["odk"]["url_session"]
     dados = {
-        "email": st.secrets["general"]["Email"],
-        "password": st.secrets["general"]["Passw"]
+        "email": st.secrets["odk"]["email"],
+        "password": st.secrets["odk"]["passw"]
     }
     resposta = requests.post(url, json=dados)
     if resposta.status_code == 200:
@@ -369,7 +369,7 @@ def plot_ranking(st, px, df, coluna):
         x="__id",
         y=coluna,
         orientation="h",
-        title="Ranking por Agentes",
+        title="Questionários por Agentes",
         labels={
             coluna: "Nome do Agente",
             "__id": "Número de Questionários Aplicados"
@@ -385,12 +385,39 @@ def plot_ranking(st, px, df, coluna):
     # Exibe no Streamlit
     st.plotly_chart(fig, use_container_width=True)     
 
+def idade_para_faixa(idade, idade_min=50, idade_max=110, passo=10):
+    """
+    Converte uma idade em uma faixa etária.
 
+    Parâmetros:
+    - idade: valor da idade.
+    - idade_min: idade mínima considerada na faixa (default 60).
+    - idade_max: idade máxima considerada na faixa (default 100).
+    - passo: intervalo das faixas (default 5).
+
+    Retorna:
+    - Uma string com a faixa etária (ex.: '60-64') ou 'Fora da faixa' se estiver fora dos limites.
+    """
+    if pd.isna(idade):
+        return 'Indefinido'
+    if idade < idade_min or idade > idade_max:
+        return 'Fora da faixa'
+
+    inicio_faixa = idade_min + ((idade - idade_min) // passo) * passo
+    fim_faixa = inicio_faixa + passo - 1
+    return f'{inicio_faixa}-{fim_faixa}'
 
 def plot_pergunta(st, px, df, coluna, valor_excluir):
     df_bar = df.groupby(["Municipio", coluna]).size().reset_index(name="count")
     if valor_excluir:
         df_bar = df_bar[df_bar[coluna] != valor_excluir]
+
+    if coluna == 'aspectos_sociodemograficos.idade':
+        # Converte idades para faixas etárias
+        df_bar['Faixa Etaria'] = df_bar[coluna].apply(lambda x: idade_para_faixa(x))
+        df_bar = df_bar.groupby(["Municipio", "Faixa Etaria"]).sum().reset_index()
+        coluna = 'Faixa Etaria'
+
 
     df_bar["percentual"] = df_bar.groupby("Municipio")["count"].transform(lambda x: x / x.sum()) * 100
 
@@ -461,17 +488,24 @@ def plot_mapa(st, px, df, coluna):
     # st.dataframe(df_filtered[['Municipio', '__system.submitterName', 'Latitude', 'Longitude']])
 
     # Cria o mapa com cor por município
-    fig = px.scatter_mapbox(
+    fig = px.scatter_map(
         df_filtered,
         lat="Latitude",
         lon="Longitude",
         # color="Municipio",  # Colore por município
         color="__system.submitterName",  # Colore por agente        
         hover_name="__system.submitterName",
-        hover_data={"Municipio": True, 'Latitude': True, 'Longitude': True, "__system.submitterName": False},
+        hover_data={'Municipio': True, 
+                    'nome_pessoa_idosa': True,
+                    'bairro': True,
+                    'Latitude': False, 
+                    'Longitude': False,
+                     "__system.submitterName": False},
         zoom=10,
+        size_max=20,
         height=700
     )
+
 
     fig.update_layout(
         mapbox_style="open-street-map",
@@ -532,21 +566,7 @@ def calcular_metricas(st, df):
     }
 
 
-def calcular_metricas_fixar_segunda_sexta(st, df):
-    """
-    Calcula métricas fixando o período de segunda a sexta-feira da semana atual.
-    """
-
-    # Conversão da data
-    df['data_convertida'] = pd.to_datetime(
-        df['__system.submissionDate'],
-        format='%Y-%m-%dT%H:%M:%S.%fZ',
-        errors='coerce'
-    ) #.dt.tz_localize(None)  # Remove timezone se houver
-
-    # Total de cadastros
-    total_cadastros = df.shape[0]
-
+def calcular_semana(days=4):
     # ============================
     # Cálculo da semana atual (segunda a sexta)
     # ============================
@@ -559,15 +579,47 @@ def calcular_metricas_fixar_segunda_sexta(st, df):
     # print(f"Início da Semana: {inicio_semana}")
 
     # Fim da semana = sexta-feira
-    fim_semana = inicio_semana + timedelta(days=4)
+    fim_semana = inicio_semana + timedelta(days=days)
 
-    # Filtra cadastros entre segunda e sexta da semana atual
-    cadastros_semana = df[
+    return {
+        'inicio_semana': inicio_semana,
+        'fim_semana': fim_semana,
+        'hoje': hoje
+    }
+
+
+def calcular_metricas_fixar_segunda_sexta(st, df,semana, municipios):
+    """
+    Calcula métricas fixando o período de segunda a sexta-feira da semana atual.
+    """
+    total_cadastros_geral = df.shape[0]
+    # Conversão da data
+    df['data_convertida'] = pd.to_datetime(
+        df['__system.submissionDate'],
+        format='%Y-%m-%dT%H:%M:%S.%fZ',
+        errors='coerce'
+    ) #.dt.tz_localize(None)  # Remove timezone se houver
+
+    df_ = df[df['Municipio'].isin(municipios)].copy() if municipios else df.copy() 
+
+    # Total de cadastros
+    total_cadastros = df_.shape[0]
+
+    hoje = semana['hoje']
+    inicio_semana = semana['inicio_semana']
+    fim_semana = semana['fim_semana']
+
+    cadastros_semana_geral = df[
         (df['data_convertida'] >= inicio_semana) &
         (df['data_convertida'] <= fim_semana)
     ].shape[0]
 
-    st.subheader(f"Semana: {inicio_semana.strftime('%d/%m/%Y')} à {fim_semana.strftime('%d/%m/%Y')}.")
+    # Filtra cadastros entre segunda e sexta da semana atual
+    cadastros_semana = df_[
+        (df_['data_convertida'] >= inicio_semana) &
+        (df_['data_convertida'] <= fim_semana)
+    ].shape[0]
+
 
     # ============================
     # Cálculo de cadastros no mês atual
@@ -575,28 +627,30 @@ def calcular_metricas_fixar_segunda_sexta(st, df):
     mes_atual = hoje.month
     ano_atual = hoje.year
 
-    cadastros_mes = df[
-        (df['data_convertida'].dt.month == mes_atual) &
-        (df['data_convertida'].dt.year == ano_atual)
+    cadastros_mes = df_[
+        (df_['data_convertida'].dt.month == mes_atual) &
+        (df_['data_convertida'].dt.year == ano_atual)
     ].shape[0]
 
     # ============================
     # Total de agentes únicos
     # ============================
-    total_agentes = df['__system.submitterName'].nunique()
+    total_agentes = df_['__system.submitterName'].nunique()
 
     # ============================
     # Metas (ajustáveis)
     # ============================
-    meta_geral = 5000
-    meta_mensal = 1500
-    meta_semanal = 150
+    meta_geral = st.secrets["metas"]["meta_geral"]  # Valor ajustável
+    meta_mensal = st.secrets["metas"]["meta_mensal"]  # Valor ajustável
+    meta_semanal = st.secrets["metas"]["meta_semanal"]  # Valor ajustável
 
     meta_geral_percentual = (total_cadastros / meta_geral) * 100
     meta_mensal_percentual = (cadastros_mes / meta_mensal) * 100
     meta_semanal_percentual = (cadastros_semana / meta_semanal) * 100
 
     return {
+        'total_cadastros_geral': total_cadastros_geral,
+        'cadastros_semana_geral': cadastros_semana_geral,
         'meta_geral': meta_geral,
         'meta_mensal': meta_mensal,
         'meta_semanal': meta_semanal,
@@ -615,10 +669,17 @@ def calcular_metricas_fixar_segunda_sexta(st, df):
 
 def exibe_metricas(st, metricas):
 
-    col1, col2, col3, col4 = st.columns(4)
+    col0, col1, col2, col3, col4 = st.columns(5)
+
+    col0.metric(
+        "Total de Questionários",
+        f"{metricas['total_cadastros_geral']}",
+        f"+{metricas['cadastros_semana_geral']} na última semana",
+        border=True
+    )
 
     col1.metric(
-        "Total de Questionários Aplicados",
+        "Por Municipio(s)",
         f"{metricas['total_cadastros']}",
         f"+{metricas['cadastros_semana']} na última semana"
     )
@@ -637,3 +698,69 @@ def exibe_metricas(st, metricas):
         f"{metricas['meta_semanal_percentual']:.1f}%",
         f"Meta: {metricas['meta_semanal']}"
     )    
+
+
+
+def plot_piramide_etaria(st, go, df, col_idade='aspectos_sociodemograficos.idade', col_sexo='aspectos_sociodemograficos.genero'):
+    """
+    Plota uma pirâmide etária a partir de um DataFrame no Streamlit.
+    
+    Parâmetros:
+    - df: DataFrame contendo as colunas de idade e sexo.
+    - col_idade: Nome da coluna com as idades (padrão: 'aspectos_sociodemograficos.idade').
+    - col_sexo: Nome da coluna com os sexos (padrão: 'aspectos_sociodemograficos.genero').
+    """
+
+    # Definindo faixas etárias
+    bins = [60, 70, 80, 90, 100]
+    labels = ['60-69', '70-79', '80-89', '90+']
+    df['faixa_etaria'] = pd.cut(df[col_idade], bins=bins, labels=labels, right=False)
+
+    # Agrupar por sexo e faixa etária
+    pop = df.groupby(['faixa_etaria', col_sexo],observed=False).size().unstack(fill_value=0)
+
+    # Garantir que ambas as colunas existam, mesmo que vazias
+    if 'Masculino' not in pop.columns:
+        pop['Masculino'] = 0
+    if 'Feminino' not in pop.columns:
+        pop['Feminino'] = 0
+
+    # Criar o gráfico
+    fig = go.Figure()
+
+    # Masculino (valores negativos)
+    fig.add_trace(go.Bar(
+        y=pop.index.astype(str),
+        x=-pop['Masculino'],  # valores negativos para esquerda
+        name='Masculino',
+        orientation='h',
+        marker=dict(color='blue')
+    ))
+
+    # Feminino
+    fig.add_trace(go.Bar(
+        y=pop.index.astype(str),
+        x=pop['Feminino'],  # valores positivos para direita
+        name='Feminino',
+        orientation='h',
+        marker=dict(color='pink')
+    ))
+
+    # Layout
+    max_pop = max(pop['Masculino'].max(), pop['Feminino'].max()) + 1  # Para ajustar eixo
+    fig.update_layout(
+        title='Pirâmide Etária',
+        xaxis=dict(
+            title='População',
+            tickvals=[-i for i in range(max_pop)] + [i for i in range(max_pop)],
+            ticktext=[i for i in range(max_pop)] + [i for i in range(max_pop)],
+            range=[-max_pop, max_pop]
+        ),
+        yaxis=dict(title='Faixa Etária'),
+        barmode='overlay',
+        bargap=0.1,
+        plot_bgcolor='white',
+        height=600
+    )
+
+    st.plotly_chart(fig, use_container_width=True)    
