@@ -670,33 +670,39 @@ def calcular_metricas_fixar_segunda_sexta(st, df,semana, municipios):
 def exibe_metricas(st, metricas):
 
     col0, col1, col2, col3, col4 = st.columns(5)
+    
 
     col0.metric(
         "Total de Questionários",
         f"{metricas['total_cadastros_geral']}",
         f"+{metricas['cadastros_semana_geral']} na última semana",
+        help=f"Última atualização: {datetime.now().strftime('%d/%m/%Y %H:%M')}",
         border=True
     )
 
     col1.metric(
         "Por Municipio(s)",
         f"{metricas['total_cadastros']}",
-        f"+{metricas['cadastros_semana']} na última semana"
+        f"+{metricas['cadastros_semana']} na última semana",
+        border=True
     )
     col2.metric(
         "Meta Geral",
         f"{metricas['meta_geral_percentual']:.0f}%",
-        f"Meta: {metricas['meta_geral']}"
+        f"Meta: {metricas['meta_geral']}",
+        border=True
     )
     col3.metric(
         "Meta Mensal",
         f"{metricas['meta_mensal_percentual']:.1f}%",
-        f"Meta: {metricas['meta_mensal']}"
+        f"Meta: {metricas['meta_mensal']}",
+        border=True
     )
     col4.metric(
         "Meta Semanal",
         f"{metricas['meta_semanal_percentual']:.1f}%",
-        f"Meta: {metricas['meta_semanal']}"
+        f"Meta: {metricas['meta_semanal']}",
+        border=True
     )    
 
 
