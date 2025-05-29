@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 from util import obter_token, aplicar_mapeamentos, plot_mapa, plot_pergunta, mapa_perguntas, lista_perguntas
 from util import plot_ranking
 from util import calcular_metricas, exibe_metricas, calcular_semana, calcular_metricas_gerais, exibe_metricas_gerais
+from util import fn_ajusta_nome
 
 st.set_page_config(layout="wide")
 
@@ -19,7 +20,6 @@ with image_col:
 st.html("""<h1 style='text-align: center; font-size:35px; margin: 0px'>Dashboard - Projeto Envelhecer Nos Territórios</h1>""")
 
 st.markdown("""___""")
-
 
 odk_token = obter_token(st)
 
@@ -43,10 +43,13 @@ if odk_token:
     }
 
     df["__system.submitterName"] = df["__system.submitterName"].replace(nomes_map)
+
     df["timestamp"] = pd.to_datetime(df["__system.submissionDate"])
     df["data"] = df['timestamp'].dt.date
     df["Municipio"] = df["__system.submitterName"].apply(lambda n: n.replace(")", "").split("(")[-1])
 
+    df["__system.submitterName"] = df["__system.submitterName"].apply(fn_ajusta_nome)
+    
     df = aplicar_mapeamentos(df)
 
     perguntas_vinculadas = {

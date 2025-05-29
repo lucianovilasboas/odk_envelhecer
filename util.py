@@ -820,3 +820,8 @@ def plot_piramide_etaria(st, go, df, col_idade='aspectos_sociodemograficos.idade
     )
 
     st.plotly_chart(fig, use_container_width=True)    
+
+
+def fn_ajusta_nome(nome_row):
+    nome = nome_row.split(" ")
+    return " ".join([nome[0],  nome[-2], nome[-1] ]) 
