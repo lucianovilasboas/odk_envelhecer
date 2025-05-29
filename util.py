@@ -586,9 +586,9 @@ def calcular_metricas_gerais(st, df, semana):
     # ============================
     # Metas (ajustáveis)
     # ============================
-    meta_geral = st.secrets["metas"]["meta_geral"]  # Valor ajustável
-    meta_mensal = st.secrets["metas"]["meta_mensal"]  # Valor ajustável
-    meta_semanal = st.secrets["metas"]["meta_semanal"]  # Valor ajustável
+    meta_geral = metas.get("Geral", 5629)  # Valor ajustável
+    meta_mensal = metas.get("Mensal", 1500)  # Valor ajustável
+    meta_semanal = metas.get("Semanal", 150)  # Valor ajustável
 
     meta_geral_percentual = (total_cadastros_geral / meta_geral) * 100
     meta_mensal_percentual = (cadastros_mes_geral / meta_mensal) * 100
