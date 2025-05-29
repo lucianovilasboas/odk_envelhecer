@@ -688,21 +688,25 @@ def calcular_metricas(st, df, semana, municipio):
     # Metas (ajustáveis)
     # ============================
     meta_geral_municipo = metas.get(municipio) 
+    meta_geral = metas.get('Geral')  # Valor ajustável
     meta_mensal = metas.get('Mensal')  
     meta_semanal = metas.get('Semanal')
 
-    meta_geral_percentual = (total_cadastros / meta_geral_municipo) * 100
+    meta_geral_percentual_minicipio = (total_cadastros / meta_geral_municipo) * 100
+    meta_geral_percentual = (total_cadastros / meta_geral) * 100
     meta_mensal_percentual = (cadastros_mes / meta_mensal) * 100
     meta_semanal_percentual = (cadastros_semana / meta_semanal) * 100
 
     return {
         'total_cadastros': total_cadastros,
         'cadastros_semana': cadastros_semana,
+        'meta_geral': meta_geral,
         'meta_geral_municipo': meta_geral_municipo,
         'meta_mensal': meta_mensal,
         'meta_semanal': meta_semanal,
         'cadastros_mes': cadastros_mes,
-        'meta_geral_percentual': meta_geral_percentual,
+        'meta_geral_percentual_minicipio': meta_geral_percentual_minicipio,
+        'meta_geral_percentual': meta_geral_percentual,        
         'meta_mensal_percentual': meta_mensal_percentual,
         'meta_semanal_percentual': meta_semanal_percentual,
         'inicio_semana': inicio_semana.strftime('%d/%m/%Y'),
@@ -713,9 +717,9 @@ def calcular_metricas(st, df, semana, municipio):
 
 def exibe_metricas(st, metricas):
 
-    col1, col2, col3, col4 = st.columns(4)
+    col0, col1, col2, col3, col4 = st.columns(5)
 
-    col1.metric(
+    col0.metric(
         "Total de Questionários",
         f"{metricas['total_cadastros']}",
         f"+{metricas['cadastros_semana']} na última semana",
@@ -723,16 +727,17 @@ def exibe_metricas(st, metricas):
         border=True
     )
 
-    # col2.metric(
-    #     "Por Municipio(s)",
-    #     f"{metricas['total_cadastros']}",
-    #     f"+{metricas['cadastros_semana']} na última semana",
-    #     border=True
-    # )
+    col1.metric(
+        "Meta Geral",
+        f"{metricas['meta_geral_percentual']:.0f}%",
+        f"Meta: {metricas['meta_geral']}",
+        border=True        
+    )
+ 
 
     col2.metric(
         "Meta Geral do municipio",
-        f"{metricas['meta_geral_percentual']:.0f}%",
+        f"{metricas['meta_geral_percentual_minicipio']:.0f}%",
         f"Meta: {metricas['meta_geral_municipo']}",
         border=True        
     )
