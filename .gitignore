@@ -1,6 +1,5 @@
 # ignore .streamlit/
 __pycache__/
 .streamlit/
-app.py
-app2.py
+ai_app.py
 

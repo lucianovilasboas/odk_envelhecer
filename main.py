@@ -6,8 +6,7 @@ import plotly.graph_objects as go
 
 from util import obter_token, aplicar_mapeamentos, plot_mapa, plot_pergunta, mapa_perguntas, lista_perguntas
 from util import plot_ranking
-from util import calcular_metricas_fixar_segunda_sexta as calcular_metricas, exibe_metricas, calcular_semana
-from util import plot_piramide_etaria
+from util import calcular_metricas, exibe_metricas, calcular_semana, calcular_metricas_gerais, exibe_metricas_gerais
 
 st.set_page_config(layout="wide")
 
@@ -62,6 +61,9 @@ if odk_token:
     semana = calcular_semana(days=5)
     st.subheader(f"Semana: {semana["inicio_semana"].strftime('%d/%m/%Y')} à {semana["fim_semana"].strftime('%d/%m/%Y')}.")
 
+    metricas_gerais = calcular_metricas_gerais(st, df, semana)
+    exibe_metricas_gerais(st, metricas_gerais) 
+
     # col0 = st.container()
     # col0.metric(
     #     "Total de Questionários Aplicados",
@@ -69,10 +71,8 @@ if odk_token:
     # )
     # col0.markdown("""___""")
     # st.subheader("Total de Respostas por Município")
-
-    col_sels = st.columns([1,4])
-    with col_sels[1]:
-        municipios = st.multiselect("Municipio(s)", df["Municipio"].unique())
+    
+    municipios = st.selectbox("Municipio(s)", df["Municipio"].unique(), index=0)
     metricas = calcular_metricas(st, df,semana, municipios)
     exibe_metricas(st, metricas) 
 

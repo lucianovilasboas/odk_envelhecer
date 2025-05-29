@@ -273,6 +273,16 @@ mapa_respondente = {
     '2': 'Outra pessoa.'
 }
 
+metas = {
+    "Geral": 5629,
+    "Mensal": 1500,
+    "Semanal": 150,
+
+    "B. Longa": 1694,
+    "A. Serra": 1216, 
+    "SC. Escalvado": 1626,
+    "D. Vasconcelos": 1093,
+}    
 
 def aplicar_mapeamentos(df):
     mapeamentos = {
@@ -496,7 +506,7 @@ def plot_mapa(st, px, df, coluna):
         color="__system.submitterName",  # Colore por agente        
         hover_name="__system.submitterName",
         hover_data={'Municipio': True, 
-                    'nome_pessoa_idosa': True,
+                    'nome_pessoa_idosa': False,
                     'bairro': True,
                     'Latitude': False, 
                     'Longitude': False,
@@ -515,55 +525,6 @@ def plot_mapa(st, px, df, coluna):
 
     st.plotly_chart(fig, use_container_width=True)
 
-
-
-# ===========================
-# Função para calcular métricas
-# ===========================
-def calcular_metricas(st, df):
-
-    df['data_convertida'] = pd.to_datetime(df['__system.submissionDate'],format='%Y-%m-%dT%H:%M:%S.%fZ', errors='coerce')
-
-    total_cadastros = df.shape[0]
-
-    # Cálculo de cadastros na última semana
-    data_limite_semana = datetime.now() - timedelta(days=7)
-    cadastros_semana = df[df['data_convertida'] >= data_limite_semana].shape[0]
-
-    st.write(f"Total de cadastros: {datetime.now()} - {timedelta(days=7)} = {data_limite_semana}")
-
-    # Cálculo de cadastros no mês atual
-    mes_atual = datetime.now().month
-    ano_atual = datetime.now().year
-    cadastros_mes = df[
-        (df['data_convertida'].dt.month == mes_atual) &
-        (df['data_convertida'].dt.year == ano_atual)
-    ].shape[0]
-
-    # Total de agentes
-    total_agentes = df['__system.submitterName'].nunique()
-
-    # Meta (ajustável conforme necessidade)
-    meta_geral = 5000  # Valor ajustável
-    meta_mensal = 1500   # Valor ajustável
-    meta_semanal = 200  # Valor ajustável
-
-    meta_geral_percentual = (total_cadastros / meta_geral) * 100
-    meta_mensal_percentual = (cadastros_mes / meta_mensal) * 100
-    meta_semanal_percentual = (cadastros_semana / meta_semanal) * 100
-
-    return {
-        'meta_geral': meta_geral,
-        'meta_mensal': meta_mensal,
-        'meta_semanal': meta_semanal,
-        'total_cadastros': total_cadastros,
-        'cadastros_semana': cadastros_semana,
-        'cadastros_mes': cadastros_mes,
-        'total_agentes': total_agentes,
-        'meta_geral_percentual': meta_geral_percentual,
-        'meta_mensal_percentual': meta_mensal_percentual,
-        'meta_semanal_percentual': meta_semanal_percentual
-    }
 
 
 def calcular_semana(days=4):
@@ -588,7 +549,7 @@ def calcular_semana(days=4):
     }
 
 
-def calcular_metricas_fixar_segunda_sexta(st, df,semana, municipios):
+def calcular_metricas_gerais(st, df, semana):
     """
     Calcula métricas fixando o período de segunda a sexta-feira da semana atual.
     """
@@ -600,11 +561,6 @@ def calcular_metricas_fixar_segunda_sexta(st, df,semana, municipios):
         errors='coerce'
     ) #.dt.tz_localize(None)  # Remove timezone se houver
 
-    df_ = df[df['Municipio'].isin(municipios)].copy() if municipios else df.copy() 
-
-    # Total de cadastros
-    total_cadastros = df_.shape[0]
-
     hoje = semana['hoje']
     inicio_semana = semana['inicio_semana']
     fim_semana = semana['fim_semana']
@@ -613,6 +569,97 @@ def calcular_metricas_fixar_segunda_sexta(st, df,semana, municipios):
         (df['data_convertida'] >= inicio_semana) &
         (df['data_convertida'] <= fim_semana)
     ].shape[0]
+
+
+
+    # ============================
+    # Cálculo de cadastros no mês atual
+    # ============================
+    mes_atual = hoje.month
+    ano_atual = hoje.year
+
+    cadastros_mes_geral = df[
+        (df['data_convertida'].dt.month == mes_atual) &
+        (df['data_convertida'].dt.year == ano_atual)
+    ].shape[0]
+
+    # ============================
+    # Metas (ajustáveis)
+    # ============================
+    meta_geral = st.secrets["metas"]["meta_geral"]  # Valor ajustável
+    meta_mensal = st.secrets["metas"]["meta_mensal"]  # Valor ajustável
+    meta_semanal = st.secrets["metas"]["meta_semanal"]  # Valor ajustável
+
+    meta_geral_percentual = (total_cadastros_geral / meta_geral) * 100
+    meta_mensal_percentual = (cadastros_mes_geral / meta_mensal) * 100
+    meta_semanal_percentual = (cadastros_semana_geral / meta_semanal) * 100
+
+    return {
+        'total_cadastros_geral': total_cadastros_geral,
+        'cadastros_semana_geral': cadastros_semana_geral,
+        'meta_geral': meta_geral,
+        'meta_mensal': meta_mensal,
+        'meta_semanal': meta_semanal,
+        'meta_geral_percentual': meta_geral_percentual,
+        'meta_mensal_percentual': meta_mensal_percentual,
+        'meta_semanal_percentual': meta_semanal_percentual,
+        'inicio_semana': inicio_semana.strftime('%d/%m/%Y'),
+        'fim_semana': fim_semana.strftime('%d/%m/%Y')
+    }
+
+def exibe_metricas_gerais(st, metricas):
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.metric(
+        "Total de Questionários",
+        f"{metricas['total_cadastros_geral']}",
+        f"+{metricas['cadastros_semana_geral']} na última semana",
+        help=f"Última atualização: {datetime.now().strftime('%d/%m/%Y %H:%M')}",
+        border=True
+    )
+
+    col2.metric(
+        "Meta Geral",
+        f"{metricas['meta_geral_percentual']:.0f}%",
+        f"Meta: {metricas['meta_geral']}",
+        border=True        
+    )
+
+    col3.metric(
+        "Meta Mensal",
+        f"{metricas['meta_mensal_percentual']:.1f}%",
+        f"Meta: {metricas['meta_mensal']}",
+        border=True
+    )
+    col4.metric(
+        "Meta Semanal",
+        f"{metricas['meta_semanal_percentual']:.1f}%",
+        f"Meta: {metricas['meta_semanal']}",
+        border=True
+    )    
+
+
+
+def calcular_metricas(st, df, semana, municipio):
+    """
+    Calcula métricas fixando o período de segunda a sexta-feira da semana atual.
+    """
+    # Conversão da data
+    df['data_convertida'] = pd.to_datetime(
+        df['__system.submissionDate'],
+        format='%Y-%m-%dT%H:%M:%S.%fZ',
+        errors='coerce'
+    ) #.dt.tz_localize(None)  # Remove timezone se houver
+
+    df_ = df[df['Municipio'] == municipio].copy() if municipio else df.copy() 
+
+    # Total de cadastros
+    total_cadastros = df_.shape[0]
+
+    hoje = semana['hoje']
+    inicio_semana = semana['inicio_semana']
+    fim_semana = semana['fim_semana']
 
     # Filtra cadastros entre segunda e sexta da semana atual
     cadastros_semana = df_[
@@ -640,24 +687,21 @@ def calcular_metricas_fixar_segunda_sexta(st, df,semana, municipios):
     # ============================
     # Metas (ajustáveis)
     # ============================
-    meta_geral = st.secrets["metas"]["meta_geral"]  # Valor ajustável
-    meta_mensal = st.secrets["metas"]["meta_mensal"]  # Valor ajustável
-    meta_semanal = st.secrets["metas"]["meta_semanal"]  # Valor ajustável
+    meta_geral_municipo = metas.get(municipio) 
+    meta_mensal = metas.get('Mensal')  
+    meta_semanal = metas.get('Semanal')
 
-    meta_geral_percentual = (total_cadastros / meta_geral) * 100
+    meta_geral_percentual = (total_cadastros / meta_geral_municipo) * 100
     meta_mensal_percentual = (cadastros_mes / meta_mensal) * 100
     meta_semanal_percentual = (cadastros_semana / meta_semanal) * 100
 
     return {
-        'total_cadastros_geral': total_cadastros_geral,
-        'cadastros_semana_geral': cadastros_semana_geral,
-        'meta_geral': meta_geral,
-        'meta_mensal': meta_mensal,
-        'meta_semanal': meta_semanal,
         'total_cadastros': total_cadastros,
         'cadastros_semana': cadastros_semana,
+        'meta_geral_municipo': meta_geral_municipo,
+        'meta_mensal': meta_mensal,
+        'meta_semanal': meta_semanal,
         'cadastros_mes': cadastros_mes,
-        'total_agentes': total_agentes,
         'meta_geral_percentual': meta_geral_percentual,
         'meta_mensal_percentual': meta_mensal_percentual,
         'meta_semanal_percentual': meta_semanal_percentual,
@@ -669,29 +713,30 @@ def calcular_metricas_fixar_segunda_sexta(st, df,semana, municipios):
 
 def exibe_metricas(st, metricas):
 
-    col0, col1, col2, col3, col4 = st.columns(5)
-    
+    col1, col2, col3, col4 = st.columns(4)
 
-    col0.metric(
+    col1.metric(
         "Total de Questionários",
-        f"{metricas['total_cadastros_geral']}",
-        f"+{metricas['cadastros_semana_geral']} na última semana",
+        f"{metricas['total_cadastros']}",
+        f"+{metricas['cadastros_semana']} na última semana",
         help=f"Última atualização: {datetime.now().strftime('%d/%m/%Y %H:%M')}",
         border=True
     )
 
-    col1.metric(
-        "Por Municipio(s)",
-        f"{metricas['total_cadastros']}",
-        f"+{metricas['cadastros_semana']} na última semana",
-        border=True
-    )
+    # col2.metric(
+    #     "Por Municipio(s)",
+    #     f"{metricas['total_cadastros']}",
+    #     f"+{metricas['cadastros_semana']} na última semana",
+    #     border=True
+    # )
+
     col2.metric(
-        "Meta Geral",
+        "Meta Geral do municipio",
         f"{metricas['meta_geral_percentual']:.0f}%",
-        f"Meta: {metricas['meta_geral']}",
-        border=True
+        f"Meta: {metricas['meta_geral_municipo']}",
+        border=True        
     )
+
     col3.metric(
         "Meta Mensal",
         f"{metricas['meta_mensal_percentual']:.1f}%",
