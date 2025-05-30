@@ -15,7 +15,7 @@ _, image_col, _ = st.columns([1,4,1])
 
 with image_col:
     # st.image("Envelhecer_nos_territrios.png", width=200)
-    st.image("ENVELHECER - IFMG - PONTE NOVA.png")
+    st.image("ENVELHECER - IFMG - PONTE NOVA_.png")
         
 st.html("""<h1 style='text-align: center; font-size:35px; margin: 0px'>Dashboard - Projeto Envelhecer Nos Territórios</h1>""")
 
@@ -49,7 +49,7 @@ if odk_token:
     df["Municipio"] = df["__system.submitterName"].apply(lambda n: n.replace(")", "").split("(")[-1])
 
     df["__system.submitterName"] = df["__system.submitterName"].apply(fn_ajusta_nome)
-    
+
     df = aplicar_mapeamentos(df)
 
     perguntas_vinculadas = {
@@ -147,10 +147,18 @@ if odk_token:
         plot_pergunta(st, px, df, pergunta_vinculada, valor_excluir="Não")
 
 
-    # st.subheader('Pirâmide Etária')
-    # st.write('Exemplo de pirâmide etária interativa')
-    # # Chamando a função
-    # plot_piramide_etaria(st, go, df, 'aspectos_sociodemograficos.idade', 'aspectos_sociodemograficos.genero')
+    # st.markdown("""___""")
+    # st.subheader("6. Dataframe e download dos dados")
+    # st.dataframe(df)
+    # csv = df.to_csv(index=False).encode('utf-8')
+    # st.download_button(
+    #     label="Download CSV",
+    #     data=csv,
+    #     file_name='dados_envelhecer.csv',
+    #     mime='text/csv',
+    # )
 
+    st.markdown("""___""")
+    st.caption("Desenvolvido com ❤️ por [Luciano Espiridiao](luciano.espiridiao@ifmg.edu.br). 2025 - Todos os direitos reservados.")
 else:
     st.error("Erro ao obter o token de autenticação. Verifique suas credenciais.")
