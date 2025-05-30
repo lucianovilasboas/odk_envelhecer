@@ -417,6 +417,22 @@ def idade_para_faixa(idade, idade_min=50, idade_max=110, passo=10):
     fim_faixa = inicio_faixa + passo - 1
     return f'{inicio_faixa}-{fim_faixa}'
 
+
+def idade_to_faixa(idade):
+    if idade < 60:
+        return 'F1: 59-'
+    elif idade < 70:
+        return 'F2: [60-69]'
+    elif idade < 80:
+        return 'F3: [70-79]'
+    elif idade < 90:
+        return 'F4: [80-89]'
+    elif idade < 100:
+        return 'F5: [90-99]'
+    
+    return 'F6: 100+'
+
+
 def plot_pergunta(st, px, df, coluna, valor_excluir):
     df_bar = df.groupby(["Municipio", coluna]).size().reset_index(name="count")
     if valor_excluir:
@@ -424,7 +440,7 @@ def plot_pergunta(st, px, df, coluna, valor_excluir):
 
     if coluna == 'aspectos_sociodemograficos.idade':
         # Converte idades para faixas etárias
-        df_bar['Faixa Etaria'] = df_bar[coluna].apply(lambda x: idade_para_faixa(x))
+        df_bar['Faixa Etaria'] = df_bar[coluna].apply(lambda x: idade_to_faixa(x))
         df_bar = df_bar.groupby(["Municipio", "Faixa Etaria"]).sum().reset_index()
         coluna = 'Faixa Etaria'
 
@@ -513,7 +529,8 @@ def plot_mapa(st, px, df, coluna):
                      "__system.submitterName": False},
         zoom=10,
         size_max=20,
-        height=700
+        height=700,
+        labels={"__system.submitterName": "Agente"},
     )
 
 
@@ -757,69 +774,69 @@ def exibe_metricas(st, metricas):
 
 
 
-def plot_piramide_etaria(st, go, df, col_idade='aspectos_sociodemograficos.idade', col_sexo='aspectos_sociodemograficos.genero'):
-    """
-    Plota uma pirâmide etária a partir de um DataFrame no Streamlit.
+# def plot_piramide_etaria(st, go, df, col_idade='aspectos_sociodemograficos.idade', col_sexo='aspectos_sociodemograficos.genero'):
+#     """
+#     Plota uma pirâmide etária a partir de um DataFrame no Streamlit.
     
-    Parâmetros:
-    - df: DataFrame contendo as colunas de idade e sexo.
-    - col_idade: Nome da coluna com as idades (padrão: 'aspectos_sociodemograficos.idade').
-    - col_sexo: Nome da coluna com os sexos (padrão: 'aspectos_sociodemograficos.genero').
-    """
+#     Parâmetros:
+#     - df: DataFrame contendo as colunas de idade e sexo.
+#     - col_idade: Nome da coluna com as idades (padrão: 'aspectos_sociodemograficos.idade').
+#     - col_sexo: Nome da coluna com os sexos (padrão: 'aspectos_sociodemograficos.genero').
+#     """
 
-    # Definindo faixas etárias
-    bins = [60, 70, 80, 90, 100]
-    labels = ['60-69', '70-79', '80-89', '90+']
-    df['faixa_etaria'] = pd.cut(df[col_idade], bins=bins, labels=labels, right=False)
+#     # Definindo faixas etárias
+#     bins = [60, 70, 80, 90, 100]
+#     labels = ['60-69', '70-79', '80-89', '90+']
+#     df['faixa_etaria'] = pd.cut(df[col_idade], bins=bins, labels=labels, right=False)
 
-    # Agrupar por sexo e faixa etária
-    pop = df.groupby(['faixa_etaria', col_sexo],observed=False).size().unstack(fill_value=0)
+#     # Agrupar por sexo e faixa etária
+#     pop = df.groupby(['faixa_etaria', col_sexo],observed=False).size().unstack(fill_value=0)
 
-    # Garantir que ambas as colunas existam, mesmo que vazias
-    if 'Masculino' not in pop.columns:
-        pop['Masculino'] = 0
-    if 'Feminino' not in pop.columns:
-        pop['Feminino'] = 0
+#     # Garantir que ambas as colunas existam, mesmo que vazias
+#     if 'Masculino' not in pop.columns:
+#         pop['Masculino'] = 0
+#     if 'Feminino' not in pop.columns:
+#         pop['Feminino'] = 0
 
-    # Criar o gráfico
-    fig = go.Figure()
+#     # Criar o gráfico
+#     fig = go.Figure()
 
-    # Masculino (valores negativos)
-    fig.add_trace(go.Bar(
-        y=pop.index.astype(str),
-        x=-pop['Masculino'],  # valores negativos para esquerda
-        name='Masculino',
-        orientation='h',
-        marker=dict(color='blue')
-    ))
+#     # Masculino (valores negativos)
+#     fig.add_trace(go.Bar(
+#         y=pop.index.astype(str),
+#         x=-pop['Masculino'],  # valores negativos para esquerda
+#         name='Masculino',
+#         orientation='h',
+#         marker=dict(color='blue')
+#     ))
 
-    # Feminino
-    fig.add_trace(go.Bar(
-        y=pop.index.astype(str),
-        x=pop['Feminino'],  # valores positivos para direita
-        name='Feminino',
-        orientation='h',
-        marker=dict(color='pink')
-    ))
+#     # Feminino
+#     fig.add_trace(go.Bar(
+#         y=pop.index.astype(str),
+#         x=pop['Feminino'],  # valores positivos para direita
+#         name='Feminino',
+#         orientation='h',
+#         marker=dict(color='pink')
+#     ))
 
-    # Layout
-    max_pop = max(pop['Masculino'].max(), pop['Feminino'].max()) + 1  # Para ajustar eixo
-    fig.update_layout(
-        title='Pirâmide Etária',
-        xaxis=dict(
-            title='População',
-            tickvals=[-i for i in range(max_pop)] + [i for i in range(max_pop)],
-            ticktext=[i for i in range(max_pop)] + [i for i in range(max_pop)],
-            range=[-max_pop, max_pop]
-        ),
-        yaxis=dict(title='Faixa Etária'),
-        barmode='overlay',
-        bargap=0.1,
-        plot_bgcolor='white',
-        height=600
-    )
+#     # Layout
+#     max_pop = max(pop['Masculino'].max(), pop['Feminino'].max()) + 1  # Para ajustar eixo
+#     fig.update_layout(
+#         title='Pirâmide Etária',
+#         xaxis=dict(
+#             title='População',
+#             tickvals=[-i for i in range(max_pop)] + [i for i in range(max_pop)],
+#             ticktext=[i for i in range(max_pop)] + [i for i in range(max_pop)],
+#             range=[-max_pop, max_pop]
+#         ),
+#         yaxis=dict(title='Faixa Etária'),
+#         barmode='overlay',
+#         bargap=0.1,
+#         plot_bgcolor='white',
+#         height=600
+#     )
 
-    st.plotly_chart(fig, use_container_width=True)    
+#     st.plotly_chart(fig, use_container_width=True)    
 
 
 def fn_ajusta_nome(nome_row):
