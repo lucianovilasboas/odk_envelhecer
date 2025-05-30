@@ -17,9 +17,8 @@ with image_col:
     # st.image("Envelhecer_nos_territrios.png", width=200)
     st.image("ENVELHECER - IFMG - PONTE NOVA_.png")
         
-st.html("""<h1 style='text-align: center; font-size:35px; margin: 0px'>Dashboard - Projeto Envelhecer Nos Territórios</h1>""")
-
-st.markdown("""___""")
+st.html("""<h1 style='text-align: center; font-size:33px; margin: 0px'>Dashboard</h1>""")
+# st.markdown("""___""")
 
 odk_token = obter_token(st)
 
