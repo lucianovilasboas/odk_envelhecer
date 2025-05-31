@@ -2,9 +2,46 @@ from datetime import datetime, timedelta
 import requests
 import matplotlib.pyplot as plt
 import pandas as pd
+import streamlit as st
+from openai import OpenAI
+import google.generativeai as genai
+
+client = OpenAI(api_key=st.secrets.api["openai_key"])
+genai.configure(api_key=st.secrets.api["gemini_key"])
+
+# Inicializa o modelo Gemini
+# Você pode escolher outros modelos como 'gemini-pro-vision' para multimodalidade
+gemini = genai.GenerativeModel('gemini-2.0-flash')
+
+def generate_gpt_reponse(gpt_input, max_tokens, temperature=0):
+    """function to generate gpt response"""
+    completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        max_tokens=max_tokens,
+        temperature=temperature,
+        messages=[
+            {"role": "system", "content": "Você é um assistente de IA especializado em análise de dados e visualização. Sua tarefa é responder "
+                                          " perguntas sobre os dados fornecidos, gerar gráficos e descrever insights de forma clara e concisa."},
+            {"role": "user", "content": gpt_input},
+        ]
+    )
+    gpt_response = completion.choices[0].message.content.strip()
+    return gpt_response
+
+
+def generate_gemini_reponse(user_input, max_tokens, temperature=0):
+    response = gemini.generate_content(user_input,
+                                       generation_config={
+                                           "max_output_tokens": max_tokens,
+                                           "temperature": temperature
+                                       }
+    )
+
+    return response.text.strip()
+
 
 # --- Autenticação Automática ---
-def obter_token(st):
+def obter_token():
     url = st.secrets["odk"]["url_session"]
     dados = {
         "email": st.secrets["odk"]["email"],
@@ -16,6 +53,45 @@ def obter_token(st):
     else:
         return None
     
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def ober_dados_odk():
+    odk_token = obter_token()
+    if odk_token:
+        headers = {"Authorization": f"Bearer {odk_token}"}
+        url_dados = st.secrets.odk["url_dados"]
+        response = requests.get(url_dados, headers=headers)
+        data = response.json()
+
+        df = pd.json_normalize(data['value'])
+
+        nomes_map = {
+            "Iphone Leandro Santa Cruz": "Leandro (SC. Escalvado)",
+            "Iphone Camila Santa Cruz": "Camila (SC. Escalvado)",
+            "Iphone Giovanna Barra Longa": "Giovanna (B. Longa)",
+            "Iphone Andriele": "Andriele (B. Longa)",
+            "Iphone Maria Clara Barra Longa": "Maria Clara (B. Longa)",
+            "iPhone João Barra Longa": "João (B. Longa)",
+            "Priscila Lopes Ferreira (Amparo Serra)": "Priscila Lopes Ferreira (A. Serra)",
+            "Iphone Gleysimara": "Gleysimara (A. Serra)",
+        }
+
+        df["__system.submitterName"] = df["__system.submitterName"].replace(nomes_map)
+
+        df["timestamp"] = pd.to_datetime(df["__system.submissionDate"])
+        df["data"] = df['timestamp'].dt.date
+        df["Municipio"] = df["__system.submitterName"].apply(lambda n: n.replace(")", "").split("(")[-1])
+
+        df["__system.submitterName"] = df["__system.submitterName"].apply(fn_ajusta_nome)
+
+        df = aplicar_mapeamentos(df)
+
+        print(f">>- Total de registros obtidos: {df.shape[0]} -<<")
+
+        return df
+
+    return None
+
 
 def graficos_2x2(df, coluna, municipios, pergunta): 
     fig, axs = plt.subplots(2, 2, figsize=(8, 6))
@@ -38,6 +114,14 @@ def graficos_2x2(df, coluna, municipios, pergunta):
     plt.tight_layout()
     plt.show()
 
+
+perguntas_vinculadas = {
+        'aspectos_sociodemograficos.povo_tradicional':'aspectos_sociodemograficos.tipo_comunidade',
+        'moradia_acesso_transporte.dispositivos_eletronicos': 'moradia_acesso_transporte.tipo_dispositivo',
+        'apoio_social.cadastro_cras': 'apoio_social.tipo_servico_cras',
+        'condicao_geral_saude.pcd': 'condicao_geral_saude.tipo_deficiencia',
+        'trabalho_renda.trabalho_nao_remunerado': 'trabalho_renda.tipo_trabalho_nao_remunerado',
+    }
 
 lista_perguntas = [
         ('aspectos_sociodemograficos.idade', 'Qual a idade?'),
@@ -842,3 +926,39 @@ def exibe_metricas(st, metricas):
 def fn_ajusta_nome(nome_row):
     nome = nome_row.split(" ")
     return " ".join([nome[0],  nome[-2], nome[-1] ]) 
+
+
+
+def gerar_descricao_por_ia_gpt(coluna, df):
+    prompt = f"""
+            Analise apenas a coluna '{coluna}' do DataFrame abaixo, que contém dados sobre pessoas idosas e suas condições de vida.
+            Gere uma descrição inteligente sobre:
+                - O que você observa nesses dados.
+                - Tendências, padrões, valores discrepantes ou informações importantes.
+                - Sugestões de análise que poderiam ser feitas.
+                - Se possível, gere perguntas que poderiam ser respondidas com esses dados.
+            Aqui está uma amostra aleatória dos dados:
+            {df.sample(50).to_csv(index=False)}
+
+            Responda em português, de forma clara e detalhada.
+    """
+    response = generate_gpt_reponse(prompt, max_tokens=400, temperature=0.3)
+    return response
+
+
+
+def gerar_descricao_por_ia_gmini(coluna, df):
+    prompt = f"""
+            Analise apenas a coluna '{coluna}' do DataFrame abaixo, que contém dados sobre pessoas idosas e suas condições de vida.
+            Gere uma analise inteligente sobre:
+                - O que você observa nessa amostra.
+                - Tendências, padrões, valores discrepantes ou informações importantes.
+                - Sugestões de análise que poderiam ser feitas.
+                - Se possível, gere perguntas que poderiam ser respondidas com esses dados.
+            Aqui está uma amostra aleatória dos dados:
+            {df.sample(200).to_csv(index=False)}
+
+            Responda em português, de forma clara e concisa.
+    """
+    response = generate_gemini_reponse(prompt, max_tokens=300, temperature=0.1)
+    return response

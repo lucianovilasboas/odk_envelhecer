@@ -2,14 +2,14 @@ import streamlit as st
 import pandas as pd
 import sqlite3
 from sqlite3 import Connection
-from openai import OpenAI
 import plotly.express as px
 import plotly.graph_objs as go
 import numpy as np
 import re
 from dateutil.parser import parse
 import traceback
-
+from util import ober_dados_odk
+from openai import OpenAI
 client = OpenAI(api_key=st.secrets.api["openai_key"])
 
 footer_html = """
@@ -39,19 +39,19 @@ footer_html = """
 """
 
 page_bg_img = f"""
-<style>
-[data-testid="stAppViewContainer"] > .main {{
-background-image: url("https://i.postimg.cc/4xgNnkfX/Untitled-design.png");
-background-size: cover;
-background-position: center center;
-background-repeat: no-repeat;
-background-attachment: local;
-}}
-[data-testid="stHeader"] {{
-background: rgba(0,0,0,0);
-}}
-</style>
-"""
+    <style>
+        [data-testid="stAppViewContainer"] > .main {{
+            background-image: url("https://i.postimg.cc/4xgNnkfX/Untitled-design.png");
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-attachment: local;
+        }}
+        [data-testid="stHeader"] {{
+            background: rgba(0,0,0,0);
+        }}
+    </style>
+    """
 
 
 def create_connection(db_name: str) -> Connection:
@@ -63,6 +63,8 @@ def run_query(conn: Connection, query: str) -> pd.DataFrame:
     return df
 
 def create_table(conn: Connection, df: pd.DataFrame, table_name: str):
+    # Converte todas as colunas com listas para string
+    df = df.map(lambda x: str(x) if isinstance(x, list) else x)
     df.to_sql(table_name, conn, if_exists="replace", index=False)
 
 
@@ -99,21 +101,16 @@ def extract_code(gpt_response):
 
 
 # wide layout
-st.set_page_config(page_icon="🤖", page_title="Ask CSV")
+st.set_page_config(page_icon="🤖", page_title="Ask my data", layout="wide")
 st.markdown(page_bg_img, unsafe_allow_html=True)
 
-st.title("ASK CSV 🤖 (GPT-powered)")
-st.header('Use Natural Language to Query Your Data')
+st.title(" 🤖 Envelhecer AI")
+st.header('Faça perguntas sobre seus dados usando linguagem natural e receba respostas em tempo real!')
 
-uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
 
-if uploaded_file is None:
-    st.info(f"""
-                👆 Upload a .csv file first. Sample to try: [sample_data.csv](https://docs.google.com/spreadsheets/d/e/2PACX-1vTeB7_jzJtacH3XrFh553m9ahL0e7IIrTxMhbPtQ8Jmp9gCJKkU624Uk1uMbCEN_-9Sf7ikd1a85wIK/pub?gid=0&single=true&output=csv)
-            """)
+df = ober_dados_odk()
 
-elif uploaded_file:
-    df = pd.read_csv(uploaded_file)
+if df is not None:
 
     # Apply the custom function and convert date columns
     for col in df.columns:
@@ -144,18 +141,22 @@ elif uploaded_file:
     selected_mode = st.selectbox("O que você gostaria de fazer?", 
                                  ["Perguntar aos dados?", 
                                   "Criar uma visualização [beta]?",
-                                  "Gerar insights sobre os dados?"])
+                                  "Gerar insights sobre os dados?",
+                                  "Perguntas livres"])
  
     if selected_mode == 'Perguntar aos dados?':
 
-        user_input = st.text_area("Escreva uma pergunta concisa e clara sobre seus dados. Por exemplo: Qual é o total de questionários por agente?", value='Qual é o total de questionários por agente?')
+        user_input = st.text_area("Escreva uma pergunta concisa e clara sobre seus dados. \
+                                  Por exemplo: Qual é o total de questionários por agente?", 
+                                  value='Qual é o total de questionários por agente?')
+        
         if st.button("Obter Resposta"):
            with st.spinner("Consultando os dados..."):
             try:
                 # create gpt prompt
                 gpt_input = 'Escreva uma consulta SQL SQLite com base nesta pergunta: {}. ' \
-                            'O nome da tabela é my_table e ela possui as seguintes colunas: {}.' \
-                            ' Retorne apenas a consulta SQL e nada mais.'.format(user_input, cols)
+                            'O nome da tabela é my_table e ela possui as seguintes colunas (coloque as colunas entre aspas): {}. ' \
+                            'Retorne apenas a consulta SQL e nada mais.'.format(user_input, cols)
 
                 query = generate_gpt_reponse(gpt_input, max_tokens=200)
                 query_clean = extract_code(query)
@@ -216,7 +217,7 @@ elif uploaded_file:
                 - Sugestões de análise que poderiam ser feitas.
                 - Se possível, gere perguntas que poderiam ser respondidas com esses dados.
             Aqui está uma amostra aleatória dos dados:
-            {df.sample(20).to_csv(index=False)}
+            {df.sample(50).to_csv(index=False)}
 
             Responda em português, de forma clara e detalhada.
         """
@@ -229,6 +230,10 @@ elif uploaded_file:
                 except Exception as e:
                     print(e)
                     st.error(f"Erro ao gerar insights: {e}")
+    elif selected_mode == "Perguntas livres":
+        st.info("Esta funcionalidade ainda está em desenvolvimento. Fique atento para atualizações futuras!")
+#     # st.markdown("""___""")
+
 
 
 

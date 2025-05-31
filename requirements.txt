@@ -2,3 +2,4 @@ matplotlib
 plotly-express
 seaborn
 openai
+google-generativeai

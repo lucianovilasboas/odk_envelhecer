@@ -1,13 +1,13 @@
 import streamlit as st
-import requests
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-from util import obter_token, aplicar_mapeamentos, plot_mapa, plot_pergunta, mapa_perguntas, lista_perguntas
+from util import plot_mapa, plot_pergunta
 from util import plot_ranking
 from util import calcular_metricas, exibe_metricas, calcular_semana, calcular_metricas_gerais, exibe_metricas_gerais
-from util import fn_ajusta_nome
+from util import ober_dados_odk, gerar_descricao_por_ia_gpt, gerar_descricao_por_ia_gmini
+from util import mapa_perguntas, lista_perguntas, perguntas_vinculadas
 
 st.set_page_config(layout="wide")
 
@@ -20,44 +20,9 @@ with image_col:
 st.html("""<h1 style='text-align: center; font-size:33px; margin: 0px'>Dashboard</h1>""")
 # st.markdown("""___""")
 
-odk_token = obter_token(st)
+df = ober_dados_odk()
 
-if odk_token:
-    headers = {"Authorization": f"Bearer {odk_token}"}
-    url_dados = st.secrets.odk["url_dados"]
-    response = requests.get(url_dados, headers=headers)
-    data = response.json()
-
-    df = pd.json_normalize(data['value'])
-
-    nomes_map = {
-        "Iphone Leandro Santa Cruz": "Leandro (SC. Escalvado)",
-        "Iphone Camila Santa Cruz": "Camila (SC. Escalvado)",
-        "Iphone Giovanna Barra Longa": "Giovanna (B. Longa)",
-        "Iphone Andriele": "Andriele (B. Longa)",
-        "Iphone Maria Clara Barra Longa": "Maria Clara (B. Longa)",
-        "iPhone João Barra Longa": "João (B. Longa)",
-        "Priscila Lopes Ferreira (Amparo Serra)": "Priscila Lopes Ferreira (A. Serra)",
-        "Iphone Gleysimara": "Gleysimara (A. Serra)",
-    }
-
-    df["__system.submitterName"] = df["__system.submitterName"].replace(nomes_map)
-
-    df["timestamp"] = pd.to_datetime(df["__system.submissionDate"])
-    df["data"] = df['timestamp'].dt.date
-    df["Municipio"] = df["__system.submitterName"].apply(lambda n: n.replace(")", "").split("(")[-1])
-
-    df["__system.submitterName"] = df["__system.submitterName"].apply(fn_ajusta_nome)
-
-    df = aplicar_mapeamentos(df)
-
-    perguntas_vinculadas = {
-        'aspectos_sociodemograficos.povo_tradicional':'aspectos_sociodemograficos.tipo_comunidade',
-        'moradia_acesso_transporte.dispositivos_eletronicos': 'moradia_acesso_transporte.tipo_dispositivo',
-        'apoio_social.cadastro_cras': 'apoio_social.tipo_servico_cras',
-        'condicao_geral_saude.pcd': 'condicao_geral_saude.tipo_deficiencia',
-        'trabalho_renda.trabalho_nao_remunerado': 'trabalho_renda.tipo_trabalho_nao_remunerado',
-    }
+if df is not None:
 
     # Progresso
     semana = calcular_semana(days=5)
@@ -66,13 +31,6 @@ if odk_token:
     metricas_gerais = calcular_metricas_gerais(st, df, semana)
     exibe_metricas_gerais(st, metricas_gerais) 
 
-    # col0 = st.container()
-    # col0.metric(
-    #     "Total de Questionários Aplicados",
-    #     f"{df.shape[0]}"
-    # )
-    # col0.markdown("""___""")
-    # st.subheader("Total de Respostas por Município")
     
     municipios = st.selectbox("Municipio(s)", df["Municipio"].unique(), index=0)
     metricas = calcular_metricas(st, df,semana, municipios)
@@ -88,11 +46,6 @@ if odk_token:
         st.plotly_chart(fig_total, use_container_width=True)
 
     with col2:
-        # st.subheader("2. Evolução dos Questionários ao Longo do Tempo")
-        # df_grouped = df.groupby(["Municipio", "data"]).size().reset_index(name="Total_Respostas")
-        # fig_evolucao = px.line(df_grouped, x="data", y="Total_Respostas", color="Municipio", markers=True)
-        # fig_evolucao.update_layout(xaxis_title="Data", yaxis_title="Número de Respostas")
-        # st.plotly_chart(fig_evolucao, use_container_width=True)
 
         st.subheader("2. Evolução Acumulada dos Questionários ao Longo do Tempo")
         # Agrupamento por Município e Data
@@ -117,7 +70,6 @@ if odk_token:
         st.plotly_chart(fig_evolucao, use_container_width=True)
 
 
-
     # Graficos de rancking por agente 
     st.subheader("3. Questionários Aplicados por Agente")
     plot_ranking(st, px, df, '__system.submitterName') 
@@ -137,13 +89,19 @@ if odk_token:
     st.subheader(f"5. Visualização: {titulo}")
     # Pergunta principal
     plot_pergunta(st, px, df, coluna, None)
-
+    
     # Verifica se há pergunta vinculada
     pergunta_vinculada = perguntas_vinculadas.get(coluna)
     if pergunta_vinculada:
         st.info("Apresetamos a seguir a distribuição das respostas para quem disse sim à pergunta acima.")
         st.subheader(f"5.1 Visualização: {mapa_perguntas.get(pergunta_vinculada,pergunta_vinculada)}")
         plot_pergunta(st, px, df, pergunta_vinculada, valor_excluir="Não")
+
+    if st.button(f"🤖 Forneça-me uma breve análise sobre essa questão: **{titulo}**"):
+        with st.spinner("🤖 Analisando os dados com IA..."):    
+            analise = gerar_descricao_por_ia_gmini(coluna, df)
+            st.markdown("""___\n### 🤖 Análise gerada""")
+            st.info(f"{analise}")
 
 
     # st.markdown("""___""")
