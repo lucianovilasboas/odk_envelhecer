@@ -8,9 +8,7 @@ import numpy as np
 import re
 from dateutil.parser import parse
 import traceback
-from util import ober_dados_odk
-from openai import OpenAI
-client = OpenAI(api_key=st.secrets.api["openai_key"])
+from util import ober_dados_odk, generate_gemini_reponse as generate_ia_reponse
 
 footer_html = """
     <div class="footer">
@@ -67,19 +65,6 @@ def create_table(conn: Connection, df: pd.DataFrame, table_name: str):
     df = df.map(lambda x: str(x) if isinstance(x, list) else x)
     df.to_sql(table_name, conn, if_exists="replace", index=False)
 
-
-def generate_gpt_reponse(gpt_input, max_tokens, temperature=0):
-    """function to generate gpt response"""
-    completion = client.chat.completions.create(
-        model="gpt-4o",
-        max_tokens=max_tokens,
-        temperature=temperature,
-        messages=[
-            {"role": "user", "content": gpt_input},
-        ]
-    )
-    gpt_response = completion.choices[0].message.content.strip()
-    return gpt_response
 
 
 def extract_code(gpt_response):
@@ -158,7 +143,7 @@ if df is not None:
                             'O nome da tabela é my_table e ela possui as seguintes colunas (coloque as colunas entre aspas): {}. ' \
                             'Retorne apenas a consulta SQL e nada mais.'.format(user_input, cols)
 
-                query = generate_gpt_reponse(gpt_input, max_tokens=200)
+                query = generate_ia_reponse(gpt_input, max_tokens=200)
                 query_clean = extract_code(query)
                 result = run_query(conn, query_clean)
 
@@ -193,7 +178,7 @@ if df is not None:
                             'Não use o argumento animation_group e retorne apenas o código sem declarações de importação, ' \
                             'use fundo transparente, os dados já foram carregados na variável df'.format(user_input, cols)
 
-                gpt_response = generate_gpt_reponse(gpt_input, max_tokens=1500)
+                gpt_response = generate_ia_reponse(gpt_input, max_tokens=1500)
                 extracted_code = extract_code(gpt_response)
                 extracted_code = extracted_code.replace('fig.show()', 'st.plotly_chart(fig)')
 
@@ -224,7 +209,7 @@ if df is not None:
         if st.button("🔮 Gerar Insights"):
             with st.spinner("Analisando os dados com IA..."):
                 try:
-                    insights = generate_gpt_reponse(prompt_base, max_tokens=1000, temperature=0.2)
+                    insights = generate_ia_reponse(prompt_base, max_tokens=1000, temperature=0.2)
                     st.success("✅ Insights gerados com sucesso!")
                     st.markdown(insights)
                 except Exception as e:
