@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
+from util import calcular_semana_domingo
 from util import plot_mapa, plot_pergunta
 from util import plot_ranking
 from util import calcular_metricas, exibe_metricas, calcular_semana, calcular_metricas_gerais, exibe_metricas_gerais
@@ -25,7 +26,7 @@ df = ober_dados_odk()
 if df is not None:
 
     # Progresso
-    semana = calcular_semana(days=5)
+    semana = calcular_semana_domingo()
     st.subheader(f"Semana: {semana["inicio_semana"].strftime('%d/%m/%Y')} à {semana["fim_semana"].strftime('%d/%m/%Y')}.")
 
     metricas_gerais = calcular_metricas_gerais(st, df, semana)

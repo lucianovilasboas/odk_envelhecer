@@ -650,6 +650,29 @@ def calcular_semana(days=4):
     }
 
 
+
+def calcular_semana_domingo():
+    hoje = datetime.now()
+    dia_da_semana = hoje.weekday()  # segunda=0, ..., domingo=6 (mas começa em 0 na segunda)
+
+    # Ajustar para que domingo seja o início da semana
+    # Como weekday() retorna 6 para domingo, precisamos transformar: segunda=1, ..., domingo=0
+    # Para isso usamos: dia_da_semana = (hoje.weekday() + 1) % 7
+    dia_da_semana_domingo_zero = (hoje.weekday() + 1) % 7
+
+    # Início da semana no domingo (00:00:00)
+    inicio_semana = (hoje - timedelta(days=dia_da_semana_domingo_zero)).replace(hour=0, minute=0, second=0, microsecond=0)
+
+    # Fim da semana no sábado (23:59:59)
+    fim_semana = inicio_semana + timedelta(days=6, hours=23, minutes=59, seconds=59, microseconds=999999)
+
+    return {
+        'inicio_semana': inicio_semana,
+        'fim_semana': fim_semana,
+        'hoje': hoje
+    }
+
+
 def calcular_metricas_gerais(st, df, semana):
     """
     Calcula métricas fixando o período de segunda a sexta-feira da semana atual.
