@@ -952,6 +952,18 @@ def fn_ajusta_nome(nome_row):
 
 
 
+def plot_violin(st, px, df, coluna):
+    fig = px.violin(df, y=coluna, box=True, points="all",
+                    color_discrete_sequence=px.colors.qualitative.Prism)
+    fig.update_layout(
+        title="Distribuição de Idades",
+        yaxis_title="Idade",
+        xaxis_title=""
+    )
+    st.plotly_chart(fig)    
+
+
+
 def gerar_descricao_por_ia_gpt(coluna, df):
     prompt = f"""
             Analise apenas a coluna '{coluna}' do DataFrame abaixo, que contém dados sobre pessoas idosas e suas condições de vida.

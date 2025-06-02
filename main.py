@@ -6,9 +6,10 @@ import plotly.graph_objects as go
 from util import calcular_semana_domingo
 from util import plot_mapa, plot_pergunta
 from util import plot_ranking
-from util import calcular_metricas, exibe_metricas, calcular_semana, calcular_metricas_gerais, exibe_metricas_gerais
+from util import calcular_metricas, exibe_metricas, calcular_metricas_gerais, exibe_metricas_gerais
 from util import ober_dados_odk, gerar_descricao_por_ia_gpt, gerar_descricao_por_ia_gmini
 from util import mapa_perguntas, lista_perguntas, perguntas_vinculadas
+from util import plot_violin
 
 st.set_page_config(layout="wide")
 
@@ -90,6 +91,10 @@ if df is not None:
     st.subheader(f"5. Visualização: {titulo}")
     # Pergunta principal
     plot_pergunta(st, px, df, coluna, None)
+
+
+    if coluna == "aspectos_sociodemograficos.idade":
+        plot_violin(st, px, df, coluna)
     
     # Verifica se há pergunta vinculada
     pergunta_vinculada = perguntas_vinculadas.get(coluna)
