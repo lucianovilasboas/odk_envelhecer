@@ -74,6 +74,7 @@ def ober_dados_odk():
             "iPhone João Barra Longa": "João (B. Longa)",
             "Priscila Lopes Ferreira (Amparo Serra)": "Priscila Lopes Ferreira (A. Serra)",
             "Iphone Gleysimara": "Gleysimara (A. Serra)",
+            "Gabriela Cruz Barra Longa": "Gabriela Cruz (B. Longa)",
         }
 
         df["__system.submitterName"] = df["__system.submitterName"].replace(nomes_map)
@@ -86,7 +87,7 @@ def ober_dados_odk():
 
         df = aplicar_mapeamentos(df)
 
-        print(f">>- Total de registros obtidos: {df.shape[0]} -<<")
+        # print(f">>- Total de registros obtidos: {df.shape[0]} -<<")
 
         return df
 
@@ -606,7 +607,7 @@ def plot_mapa(st, px, df, coluna):
         color="__system.submitterName",  # Colore por agente        
         hover_name="__system.submitterName",
         hover_data={'Municipio': True, 
-                    'nome_pessoa_idosa': False,
+                    'nome_pessoa_idosa': True,
                     'bairro': True,
                     'Latitude': False, 
                     'Longitude': False,
