@@ -75,6 +75,7 @@ def ober_dados_odk():
             "Priscila Lopes Ferreira (Amparo Serra)": "Priscila Lopes Ferreira (A. Serra)",
             "Iphone Gleysimara": "Gleysimara (A. Serra)",
             "Gabriela Cruz Barra Longa": "Gabriela Cruz (B. Longa)",
+            "Lailah Duarte - Santa Cruz": "Lailah Duarte (SC. Escalvado)",
         }
 
         df["__system.submitterName"] = df["__system.submitterName"].replace(nomes_map)
