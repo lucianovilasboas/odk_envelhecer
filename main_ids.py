@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from io import BytesIO
 from util import ober_dados_odk
 
 st.set_page_config("🆔entificador Único  🔑",layout="wide")
@@ -70,3 +71,14 @@ st.dataframe(df_bairro[[
                'nome_agente',
             #    '__system.submitterName' 
                ]], hide_index=True, use_container_width=True)
+
+
+
+
+# Botão para download
+st.download_button(
+    label="📥 Baixar Excel",
+    data=output,
+    file_name="dados_bairro.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
