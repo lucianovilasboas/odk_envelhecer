@@ -90,7 +90,7 @@ output.seek(0)
 
 # Botão para baixar diretamente
 st.download_button(
-    label="📥 Baixar resultado em .xlsx",
+    label=f"📥 Baixar {bairro}_de_{submitter_name}.xlsx",
     data=output,
     file_name=f"{bairro}_de_{submitter_name}.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
