@@ -85,9 +85,10 @@ def ober_dados_odk():
 
         df["timestamp"] = pd.to_datetime(df["__system.submissionDate"])
         df["data"] = df['timestamp'].dt.date
-        df["Municipio"] = df["__system.submitterName"].apply(lambda n: n.replace(")", "").split("(")[-1])
+        df["Municipio"] = df["__system.submitterName"].apply(lambda n: n.replace(")", "").split("(")[-1].strip())
 
         df["__system.submitterName"] = df["__system.submitterName"].apply(fn_ajusta_nome)
+        df["ID"] = df.index+1 
 
         df = aplicar_mapeamentos(df)
 
@@ -610,7 +611,8 @@ def plot_mapa(st, px, df, coluna):
         # color="Municipio",  # Colore por município
         color="__system.submitterName",  # Colore por agente        
         hover_name="__system.submitterName",
-        hover_data={'Municipio': True, 
+        hover_data={'ID': True,
+                    'Municipio': True, 
                     'nome_pessoa_idosa': True,
                     'bairro': True,
                     'Latitude': False, 
@@ -952,6 +954,7 @@ def exibe_metricas(st, metricas):
 
 
 def fn_ajusta_nome(nome_row):
+    """Ajusta o nome para o formato 'Nome Lastname'."""
     nome = nome_row.split(" ")
     return " ".join([nome[0],  nome[-2], nome[-1] ]) 
 
