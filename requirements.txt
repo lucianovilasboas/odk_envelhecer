@@ -4,3 +4,4 @@ seaborn
 openai
 google-generativeai
 xlsxwriter
+openpyxl
