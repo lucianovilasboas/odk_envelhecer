@@ -74,6 +74,11 @@ st.dataframe(df_bairro[[
 
 
 
+# Converter para Excel em memória
+output = BytesIO()
+with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+    df_bairro.to_excel(writer, index=False, sheet_name="Formulario1_IDs")
+output.seek(0)
 
 # Botão para download
 st.download_button(
