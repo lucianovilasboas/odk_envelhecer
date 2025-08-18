@@ -61,8 +61,8 @@ if bairro == 'Todos':
 else:
     df_bairro = df[(df['bairro'] == bairro) & (df['__system.submitterName'] == submitter_name)]
 
-st.write(f"{bairro}/{df_bairro['Municipio'].values[0]}")
-st.dataframe(df_bairro[[
+
+df_ = df_bairro[[
                'identificador_unico',
                'Municipio',
                'nome_pessoa_idosa', 
@@ -70,20 +70,28 @@ st.dataframe(df_bairro[[
                'endereco',
                'nome_agente',
             #    '__system.submitterName' 
-               ]], hide_index=True, use_container_width=True)
+               ]]
+
+st.write(f"{bairro}/{df_bairro['Municipio'].values[0]}")
+st.dataframe(df_, hide_index=True, use_container_width=True)
 
 
 
-# Converter para Excel em memória
+# Remover timezone (se houver colunas datetime com tz)
+for col in df_.columns:
+    if pd.api.types.is_datetime64_any_dtype(df_[col]):
+        df_[col] = df_[col].dt.tz_localize(None)
+
+# Gerar Excel em memória
 output = BytesIO()
 with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-    df_bairro.to_excel(writer, index=False, sheet_name="Formulario1_IDs")
+    df_.to_excel(writer, index=False, sheet_name="Dados")
 output.seek(0)
 
-# Botão para download
+# Botão para baixar diretamente
 st.download_button(
-    label="📥 Baixar Excel",
+    label="📥 Baixar resultado em .xlsx",
     data=output,
-    file_name="dados_bairro.xlsx",
+    file_name=f"{bairro}_de_{submitter_name}.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 )
