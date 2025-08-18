@@ -52,8 +52,13 @@ st.dataframe(df_filter[[
 
 st.markdown("---")
 bairros = sorted(df[df['__system.submitterName'] == submitter_name]['bairro'].unique())
+bairros = ['Todos'] + bairros
 bairro = st.selectbox('Bairro', bairros)
-df_bairro = df[(df['bairro'] == bairro) & (df['__system.submitterName'] == submitter_name)]
+
+if bairro == 'Todos':
+    df_bairro = df[df['__system.submitterName'] == submitter_name]
+else:
+    df_bairro = df[(df['bairro'] == bairro) & (df['__system.submitterName'] == submitter_name)]
 
 st.write(f"{bairro}/{df_bairro['Municipio'].values[0]}")
 st.dataframe(df_bairro[[
