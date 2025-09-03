@@ -13,6 +13,25 @@ genai.configure(api_key=st.secrets.api["gemini_key"])
 # Você pode escolher outros modelos como 'gemini-pro-vision' para multimodalidade
 gemini = genai.GenerativeModel('gemini-2.0-flash')
 
+
+nomes_map = {
+            "Iphone Leandro Santa Cruz": "Leandro (SC. Escalvado)",
+            "Iphone Camila Santa Cruz": "Camila (SC. Escalvado)",
+            "Iphone Giovanna Barra Longa": "Giovanna (B. Longa)",
+            "Iphone Andriele": "Andriele (B. Longa)",
+            "Iphone Maria Clara Barra Longa": "Maria Clara (B. Longa)",
+            "iPhone João Barra Longa": "João (B. Longa)",
+            "Priscila Lopes Ferreira (Amparo Serra)": "Priscila Lopes Ferreira (A. Serra)",
+            "Iphone Gleysimara": "Gleysimara (A. Serra)",
+            "Gabriela Cruz Barra Longa": "Gabriela Cruz (B. Longa)",
+            "Lailah Duarte - Santa Cruz": "Lailah Duarte (SC. Escalvado)",
+            "Lidiane Gomes Prado - Barra Longa": "Lidiane Gomes Prado (B. Longa)",
+            "Tamara Cassiano - Diogo de Vasconcelos": "Tamara Cassiano (D. Vasconcelos)",
+            "Gislaine Vitória - Diogo de Vasconcelos": "Gislaine Vitória (D. Vasconcelos)"
+}
+
+
+
 def generate_gpt_reponse(gpt_input, max_tokens, temperature=0):
     """function to generate gpt response"""
     completion = client.chat.completions.create(
@@ -65,22 +84,6 @@ def ober_dados_odk():
 
         df = pd.json_normalize(data['value'])
 
-        nomes_map = {
-            "Iphone Leandro Santa Cruz": "Leandro (SC. Escalvado)",
-            "Iphone Camila Santa Cruz": "Camila (SC. Escalvado)",
-            "Iphone Giovanna Barra Longa": "Giovanna (B. Longa)",
-            "Iphone Andriele": "Andriele (B. Longa)",
-            "Iphone Maria Clara Barra Longa": "Maria Clara (B. Longa)",
-            "iPhone João Barra Longa": "João (B. Longa)",
-            "Priscila Lopes Ferreira (Amparo Serra)": "Priscila Lopes Ferreira (A. Serra)",
-            "Iphone Gleysimara": "Gleysimara (A. Serra)",
-            "Gabriela Cruz Barra Longa": "Gabriela Cruz (B. Longa)",
-            "Lailah Duarte - Santa Cruz": "Lailah Duarte (SC. Escalvado)",
-            "Lidiane Gomes Prado - Barra Longa": "Lidiane Gomes Prado (B. Longa)",
-            "Tamara Cassiano - Diogo de Vasconcelos": "Tamara Cassiano (D. Vasconcelos)",
-            "Gislaine Vitória - Diogo de Vasconcelos": "Gislaine Vitória (D. Vasconcelos)"
-        }
-
         df["__system.submitterName"] = df["__system.submitterName"].replace(nomes_map)
 
         df["timestamp"] = pd.to_datetime(df["__system.submissionDate"])
@@ -88,7 +91,8 @@ def ober_dados_odk():
         df["Municipio"] = df["__system.submitterName"].apply(lambda n: n.replace(")", "").split("(")[-1].strip())
 
         df["__system.submitterName"] = df["__system.submitterName"].apply(fn_ajusta_nome)
-        df["ID"] = df.index+1 
+        
+        # df["ID"] = df.index+1 
 
         df = aplicar_mapeamentos(df)
 
@@ -611,9 +615,8 @@ def plot_mapa(st, px, df, coluna):
         # color="Municipio",  # Colore por município
         color="__system.submitterName",  # Colore por agente        
         hover_name="__system.submitterName",
-        hover_data={'ID': True,
-                    'Municipio': True, 
-                    'nome_pessoa_idosa': True,
+        hover_data={'Municipio': True, 
+                    'nome_pessoa_idosa': False,
                     'bairro': True,
                     'Latitude': False, 
                     'Longitude': False,
