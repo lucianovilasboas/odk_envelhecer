@@ -20,6 +20,7 @@ nomes_map = {
             "Iphone Giovanna Barra Longa": "Giovanna (B. Longa)",
             "Iphone Andriele": "Andriele (B. Longa)",
             "Iphone Maria Clara Barra Longa": "Maria Clara (B. Longa)",
+            "Iphone Maria Clara": "Maria Clara (B. Longa)",
             "iPhone João Barra Longa": "João (B. Longa)",
             "Priscila Lopes Ferreira (Amparo Serra)": "Priscila Lopes Ferreira (A. Serra)",
             "Iphone Gleysimara": "Gleysimara (A. Serra)",
@@ -27,7 +28,8 @@ nomes_map = {
             "Lailah Duarte - Santa Cruz": "Lailah Duarte (SC. Escalvado)",
             "Lidiane Gomes Prado - Barra Longa": "Lidiane Gomes Prado (B. Longa)",
             "Tamara Cassiano - Diogo de Vasconcelos": "Tamara Cassiano (D. Vasconcelos)",
-            "Gislaine Vitória - Diogo de Vasconcelos": "Gislaine Vitória (D. Vasconcelos)"
+            "Gislaine Vitória - Diogo de Vasconcelos": "Gislaine Vitória (D. Vasconcelos)",
+            "Amanda Gomes - Santa Cruz do Escalvado": "Amanda Gomes (SC. Escalvado)",
 }
 
 
