@@ -30,6 +30,7 @@ nomes_map = {
             "Tamara Cassiano - Diogo de Vasconcelos": "Tamara Cassiano (D. Vasconcelos)",
             "Gislaine Vitória - Diogo de Vasconcelos": "Gislaine Vitória (D. Vasconcelos)",
             "Amanda Gomes - Santa Cruz do Escalvado": "Amanda Gomes (SC. Escalvado)",
+            "Daniela Gomides de Souza (SC. Escalvado)": "Daniela Gomides de Souza (D. Vasconcelos)",
 }
 
 
