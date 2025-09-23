@@ -103,11 +103,11 @@ if df is not None:
         st.subheader(f"5.1 Visualização: {mapa_perguntas.get(pergunta_vinculada,pergunta_vinculada)}")
         plot_pergunta(st, px, df, pergunta_vinculada, valor_excluir="Não")
 
-    if st.button(f"🤖 Forneça-me uma breve análise sobre essa questão: **{titulo}**"):
-        with st.spinner("🤖 Analisando os dados com IA..."):    
-            analise = gerar_descricao_por_ia_gmini(coluna, df)
-            st.markdown("""___\n### 🤖 Análise gerada""")
-            st.info(f"{analise}")
+    # if st.button(f"🤖 Forneça-me uma breve análise sobre essa questão: **{titulo}**"):
+    #     with st.spinner("🤖 Analisando os dados com IA..."):    
+    #         analise = gerar_descricao_por_ia_gmini(coluna, df)
+    #         st.markdown("""___\n### 🤖 Análise gerada""")
+    #         st.info(f"{analise}")
 
 
     # st.markdown("""___""")
