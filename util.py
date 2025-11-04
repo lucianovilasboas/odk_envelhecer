@@ -31,6 +31,7 @@ nomes_map = {
             "Gislaine Vitória - Diogo de Vasconcelos": "Gislaine Vitória (D. Vasconcelos)",
             "Amanda Gomes - Santa Cruz do Escalvado": "Amanda Gomes (SC. Escalvado)",
             "Daniela Gomides de Souza (SC. Escalvado)": "Daniela Gomides de Souza (D. Vasconcelos)",
+            "iPhone Maria Clara": "Maria Clara (B. Longa)",
 }
 
 
@@ -77,11 +78,11 @@ def obter_token():
     
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def ober_dados_odk():
+def obter_dados_odk(form_url):
     odk_token = obter_token()
     if odk_token:
         headers = {"Authorization": f"Bearer {odk_token}"}
-        url_dados = st.secrets.odk["url_dados"]
+        url_dados = form_url
         response = requests.get(url_dados, headers=headers)
         data = response.json()
 
