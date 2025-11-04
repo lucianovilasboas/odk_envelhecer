@@ -78,9 +78,9 @@ if df is not None:
     plot_ranking(st, px, df, '__system.submitterName') 
 
 
-    # # Streamlit App
-    # st.subheader("4. Questionários Aplicados por Localização Geográfica")
-    # plot_mapa(st, px, df, 'localizacao.coordinates')
+    # Streamlit App
+    st.subheader("4. Questionários Aplicados por Localização Geográfica")
+    plot_mapa(st, px, df, 'localizacao.coordinates')
 
 
     # # Gráfico da pergunta principal
