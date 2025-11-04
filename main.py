@@ -20,7 +20,7 @@ with image_col:
     st.image("ENVELHECER - IFMG - PONTE NOVA_.png")
         
 st.html("""<h1 style='text-align: center; font-size:33px; margin: 0px'>📋 Formulário 1</h1>""")
-# st.markdown("""___""")
+st.markdown("""___""")
 
 df = obter_dados_odk(st.secrets["odk"]["url_form_1"])
 
