@@ -18,9 +18,10 @@ _, image_col, _ = st.columns([1,4,1])
 with image_col:
     # st.image("Envelhecer_nos_territrios.png", width=200)
     st.image("ENVELHECER - IFMG - PONTE NOVA_.png")
-        
-st.html("""<h1 style='text-align: center; font-size:33px; margin: 0px'>Dashboard - Formulario 2</h1>""")
-# st.markdown("""___""")
+
+#crie abaixo um emoji de formulario
+st.html("""<h1 style='text-align: center; font-size:33px; margin: 0px'>📋 Formulário 2</h1>""")
+st.markdown("""___""")
 
 df = obter_dados_odk(st.secrets.odk["url_form_2"]) 
 
