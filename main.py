@@ -7,7 +7,7 @@ from util import calcular_semana_domingo
 from util import plot_mapa, plot_pergunta
 from util import plot_ranking
 from util import calcular_metricas, exibe_metricas, calcular_metricas_gerais, exibe_metricas_gerais
-from util import ober_dados_odk, gerar_descricao_por_ia_gpt, gerar_descricao_por_ia_gmini
+from util import obter_dados_odk, gerar_descricao_por_ia_gpt, gerar_descricao_por_ia_gmini
 from util import mapa_perguntas, lista_perguntas, perguntas_vinculadas
 from util import plot_violin
 
@@ -19,10 +19,10 @@ with image_col:
     # st.image("Envelhecer_nos_territrios.png", width=200)
     st.image("ENVELHECER - IFMG - PONTE NOVA_.png")
         
-st.html("""<h1 style='text-align: center; font-size:33px; margin: 0px'>Dashboard</h1>""")
+st.html("""<h1 style='text-align: center; font-size:33px; margin: 0px'>Dashboard - Formulario 1</h1>""")
 # st.markdown("""___""")
 
-df = ober_dados_odk()
+df = obter_dados_odk(st.secrets["odk"]["url_form_1"])
 
 if df is not None:
 
